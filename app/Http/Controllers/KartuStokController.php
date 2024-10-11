@@ -11,6 +11,21 @@ use Illuminate\Support\Facades\Auth;
 
 class KartuStokController extends Controller
 {
+    public function searchKartuStok(Request $request)
+    {
+        $search = $request->input('search');
+
+        $kartu_stok = DB::select(
+            'SELECT kartu_stok.*, barang.nama
+         FROM kartu_stok
+         JOIN barang ON barang.idbarang = kartu_stok.idbarang
+         WHERE barang.nama LIKE :search',
+            ['search' => "%$search%"],
+        );
+
+        return response()->json($kartu_stok);
+    }
+
     public function store(Request $request)
     {
         $stokTerakhir = DB::select(
@@ -79,33 +94,23 @@ class KartuStokController extends Controller
 
         return redirect()->route('kartu-stok.index')->with('success', 'Data updated successfully');
     }
-
-    // Fungsi untuk download data kartu stok sebagai CSV
-    public function downloadCsv()
+    public function history($id)
     {
-        // Query data kartu stok menggunakan raw SQL
-        $kartuStokData = DB::select('SELECT * FROM kartu_stok');
+        $history = DB::select('SELECT * FROM kartu_stok WHERE idbarang = ? ORDER BY created_at DESC', [$id]);
 
-        // Membuat response untuk mendownload file CSV
-        $response = new StreamedResponse(function () use ($kartuStokData) {
-            // Membuka output buffer untuk menulis file
-            $handle = fopen('php://output', 'w');
-            // Menulis header CSV
-            fputcsv($handle, ['ID', 'Jenis Transaksi', 'Masuk', 'Keluar', 'Stock', 'Created At', 'ID Transaksi', 'ID Barang']);
-
-            // Menulis setiap baris data ke dalam CSV
-            foreach ($kartuStokData as $row) {
-                fputcsv($handle, [$row->idkartu_stok, $row->jenis_transaksi, $row->masuk, $row->keluar, $row->stock, $row->create_at, $row->idtransaksi, $row->idbarang]);
-            }
-
-            // Menutup handle file
-            fclose($handle);
-        });
-
-        // Menambahkan header untuk file CSV
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="kartu_stok.csv"');
-
-        return $response;
+        if ($history) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $history,
+            ]);
+        } else {
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'Tidak ada history untuk Barang ini.',
+                ],
+                404,
+            );
+        }
     }
 }

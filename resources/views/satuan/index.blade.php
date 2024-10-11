@@ -9,7 +9,7 @@
                         <div class="col-lg-3 me-auto">
                             <p class="lead text-dark pt-1 mb-0">Manage Stock Unit</p>
                         </div>
-                        <div class="col-lg-3 ">
+                        <div class="col-lg-3">
                             <div class="nav-wrapper position-relative end-0">
                                 <ul class="nav nav-pills nav-fill flex-row p-1" role="tablist">
                                     <li class="nav-item">
@@ -30,16 +30,23 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="tab-content tab-space">
+                    <!-- Success Alert -->
+                    <div id="success-alert" class="alert alert-success text-white font-weight-bold d-none" role="alert">
+                        Stock Unit added successfully!
+                    </div>
+
                     <div class="tab-pane active" id="create-stock-unit">
                         <div class="row mb-4 px-5">
                             <div class="col-md-12">
                                 <h4 class="text-center">Form Input Stock Unit</h4>
-                                <form action="{{ route('satuan.create') }}" method="POST">
+                                <form id="stockUnitForm" method="POST">
                                     @csrf
                                     <div class="mb-3">
                                         <label for="nama_satuan" class="form-label">Nama Satuan</label>
-                                        <input type="text" class="form-control" id="nama_satuan" name="nama_satuan" placeholder="Enter stock unit name" required>
+                                        <input type="text" class="form-control" id="nama_satuan" name="nama_satuan"
+                                            placeholder="Enter stock unit name" required>
                                     </div>
                                     <div class="mb-3">
                                         <button type="submit" class="btn btn-primary w-100">Add Unit</button>
@@ -48,6 +55,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Table Stock Unit -->
                     <div class="tab-pane" id="table-stock-unit">
                         <div class="table-responsive p-4">
                             <table class="table table-striped">
@@ -58,18 +67,14 @@
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="satuanTableBody">
                                     @foreach ($satuan as $item)
-                                        <tr>
+                                        <tr id="row-{{ $item->idsatuan }}">
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $item->nama_satuan }}</td>
                                             <td>
-                                                <a href="{{ route('satuan.edit', $item->idsatuan) }}" class="btn btn-warning btn-sm">Edit</a>
-                                                <form action="{{ route('satuan.delete', $item->idsatuan) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm deleteSatuan"
+                                                    data-id="{{ $item->idsatuan }}">Delete</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -81,4 +86,72 @@
             </div>
         </div>
     </div>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Handle form submission using AJAX
+            $('#stockUnitForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent page refresh
+
+                let formData = $(this).serialize(); // Serialize form data
+
+                $.ajax({
+                    url: "{{ route('satuan.create') }}", // Route to handle the form submission
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        // Show success alert
+                        $('#success-alert').removeClass('d-none');
+
+                        // Hide the alert after 3 seconds
+                        setTimeout(function() {
+                            $('#success-alert').addClass('d-none');
+                        }, 3000);
+
+                        $('#stockUnitForm')[0].reset(); // Clear the form
+
+                        // Add new entry to the table dynamically
+                        $('#satuanTableBody').append(
+                            `<tr id="row-${response.idsatuan}">
+                        <td>${response.idsatuan}</td>
+                        <td>${response.nama_satuan}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm deleteSatuan" data-id="${response.idsatuan}">Delete</button>
+                        </td>
+                    </tr>`
+                        );
+                    },
+                    error: function(error) {
+                        console.error(error);
+                        alert('Error adding Stock Unit.');
+                    }
+                });
+            });
+
+            // Delete Satuan
+            $(document).on('click', '.deleteSatuan', function() {
+                let id = $(this).data('id');
+                if (confirm("Are you sure you want to delete this stock unit?")) {
+                    $.ajax({
+                        url: "{{ route('satuan.delete', ['id' => ':id']) }}".replace(':id', id),
+                        type: 'DELETE',
+                        data: {
+                            "_token": "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            // Remove the table row
+                            $(`#row-${id}`).remove();
+                        },
+                        error: function(error) {
+                            console.error(error);
+                            alert('Error deleting Stock Unit.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 @endsection

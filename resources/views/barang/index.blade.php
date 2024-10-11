@@ -9,18 +9,17 @@
                         <div class="col-lg-3 me-auto">
                             <p class="lead text-dark pt-1 mb-0">Manage Barang</p>
                         </div>
-                        <div class="col-lg-3 ">
+                        <div class="col-lg-3">
                             <div class="nav-wrapper position-relative end-0">
                                 <ul class="nav nav-pills nav-fill flex-row p-1" role="tablist">
                                     <li class="nav-item">
-                                        <a class="nav-link mb-0 px-0 py-1 active" data-bs-toggle="tab"
-                                            href="#create-stock-unit" role="tab" aria-controls="create"
-                                            aria-selected="true">
+                                        <a class="nav-link mb-0 px-0 py-1 active" data-bs-toggle="tab" href="#create-barang"
+                                            role="tab" aria-controls="create" aria-selected="true">
                                             <i class="fas fa-plus text-sm me-2"></i> Create
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#table-stock-unit"
+                                        <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#table-barang"
                                             role="tab" aria-controls="table" aria-selected="false">
                                             <i class="fas fa-table text-sm me-2"></i> Table
                                         </a>
@@ -30,18 +29,25 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="tab-content tab-space">
-                    <div class="tab-pane active" id="create-stock-unit">
+                    <!-- Success Alert -->
+                    <div id="success-alert" class="alert alert-success text-white font-weight-bold d-none" role="alert">
+                        Barang added successfully!
+                    </div>
+
+                    <!-- Create Barang -->
+                    <div class="tab-pane active" id="create-barang">
                         <div class="row mb-4 px-5">
                             <div class="col-md-12">
                                 <h4 class="text-center">Form Input Barang</h4>
-                                <form action="{{ route('barang.store') }}" method="POST">
+                                <form id="barangForm" method="POST">
                                     @csrf
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-12">
                                                 <div class="input-group input-group-dynamic mb-4">
-                                                    <label class="form-label mt-n3">Jenis</label>
+                                                    <label class="form-label mt-n3">Jenis Barang</label>
                                                     <input class="form-control" aria-label="Jenis" type="text"
                                                         id="jenis" name="jenis" placeholder="Enter barang jenis"
                                                         required>
@@ -90,7 +96,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane" id="table-stock-unit">
+
+                    <!-- Table Barang -->
+                    <div class="tab-pane" id="table-barang">
                         <div class="table-responsive p-4">
                             <table class="table table-striped">
                                 <thead>
@@ -98,27 +106,22 @@
                                         <th scope="col">#</th>
                                         <th scope="col">Jenis Barang</th>
                                         <th scope="col">Nama Barang</th>
-                                        <th scope="col">Action</th>
                                         <th scope="col">Harga</th>
+                                        <th scope="col">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="barangTableBody">
                                     @foreach ($barang as $item)
-                                        <tr>
-                                            {{-- @dd($item); --}}
+                                        <tr id="row-{{ $item->idbarang }}">
                                             <td>{{ $loop->iteration }}</td>
+                                            <td>{{ $item->jenis }}</td>
                                             <td>{{ $item->nama }}</td>
-                                            <td>{{ $item->nama_satuan }}</td>
                                             <td>{{ $item->harga }}</td>
                                             <td>
-                                                <a href="{{ route('barang.edit', $item->idsatuan) }}"
-                                                    class="btn btn-warning btn-sm">Edit</a>
-                                                <form action="{{ route('barang.delete', $item->idsatuan) }}" method="POST"
-                                                    class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                                </form>
+                                                <button type="button" class="btn btn-warning btn-sm editBarang"
+                                                    data-id="{{ $item->idbarang }}">Edit</button>
+                                                <button type="button" class="btn btn-danger btn-sm deleteBarang"
+                                                    data-id="{{ $item->idbarang }}">Delete</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -130,4 +133,76 @@
             </div>
         </div>
     </div>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Handle form submission using AJAX
+            $('#barangForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent page refresh
+
+                let formData = $(this).serialize(); // Serialize form data
+
+                $.ajax({
+                    url: "{{ route('barang.store') }}",
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        // Show success alert
+                        $('#success-alert').removeClass('d-none');
+
+                        // Hide the alert after 3 seconds
+                        setTimeout(function() {
+                            $('#success-alert').addClass('d-none');
+                        }, 3000);
+
+                        $('#barangForm')[0].reset();  // Reset the correct form
+                        // Add new entry to the table dynamically
+                        $('#barangTableBody').append(
+                            `<tr id="row-${response.data.idbarang}">
+                            <td>${response.data.idbarang}</td>
+                            <td>${response.data.jenis}</td>
+                            <td>${response.data.nama}</td>
+                            <td>${response.data.harga}</td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm editBarang" data-id="${response.data.idbarang}">Edit</button>
+                                <button type="button" class="btn btn-danger btn-sm deleteBarang" data-id="${response.data.idbarang}">Delete</button>
+                            </td>
+                        </tr>`
+                        );
+
+                    },
+                    error: function(error) {
+                        console.error(error);
+                        alert('Error adding Barang.');
+                    }
+                });
+
+            });
+
+            // Delete Barang
+            $(document).on('click', '.deleteBarang', function() {
+                let id = $(this).data('id');
+                if (confirm("Are you sure you want to delete this barang?")) {
+                    $.ajax({
+                        url: "{{ route('barang.delete', ['id' => ':id']) }}".replace(':id', id),
+                        type: 'DELETE',
+                        data: {
+                            "_token": "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            // Remove the table row
+                            $(`#row-${id}`).remove();
+                        },
+                        error: function(error) {
+                            console.error(error);
+                            alert('Error deleting Barang.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 @endsection

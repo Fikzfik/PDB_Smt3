@@ -50,6 +50,9 @@ class ViewController extends Controller
         );
         return view('kartustok.index', compact('validUser', 'barang','kartu_stok'));
     }
+    public function showHistory(){
+
+    }
     public function vendor()
     {
         
@@ -59,5 +62,10 @@ class ViewController extends Controller
     {
       
         return view('role');
+    }
+    public function test()
+    {
+      
+        return view('test');
     }
 }

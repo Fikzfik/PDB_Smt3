@@ -54,7 +54,7 @@ class AuthController extends Controller
             return redirect()->back()->with('error', 'Email tidak ditemukan.');
         }
     }
-    public function logout()
+    public function logout($id)
     {
         $user = DB::select('SELECT * FROM users WHERE status = 1');
         if ($user) {
