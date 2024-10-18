@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     // Insert (Create) User
+    public function w(){
+        return 'lol';
+    }
     public function create(Request $request)
     {
         // @dd($request);
@@ -46,7 +49,11 @@ class AuthController extends Controller
                 }
                 Auth::loginUsingId($user->iduser);
                 // @dd(Auth::user()->status);
-                return redirect()->route('index');
+                if ($user->idrole == 1) {
+                    return redirect()->route('index.admin');
+                }else{
+                    return redirect()->route('index.user');
+                }
             } else {
                 return redirect()->back()->with('error', 'Password salah.');
             }
@@ -54,7 +61,7 @@ class AuthController extends Controller
             return redirect()->back()->with('error', 'Email tidak ditemukan.');
         }
     }
-    public function logout($id)
+    public function logoutakun()
     {
         $user = DB::select('SELECT * FROM users WHERE status = 1');
         if ($user) {

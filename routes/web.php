@@ -6,10 +6,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\KartuStokController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\VendorController;
 
-Route::post('/search-kartu-stok', [KartuStokController::class, 'searchKartuStok'])->name('search.kartu.stok');
 Route::group(['middleware' => 'isLogin'], function () {
-    Route::get('/', [ViewController::class, 'dashboard'])->name('index');
+    Route::get('/admin', [ViewController::class, 'dashboard'])->name('index.admin');
+    Route::get('/', [ViewController::class, 'dashboarduser'])->name('index.user');
 
     Route::get('/satuan', [ViewController::class, 'satuan'])->name('satuanBarang');
     Route::post('/satuan', [SatuanController::class, 'create'])->name('satuan.create');
@@ -28,13 +31,27 @@ Route::group(['middleware' => 'isLogin'], function () {
     Route::post('/kartu-stok/{idkartu_stok}/delete', [KartuStokController::class, 'delete'])->name('kartuStok.delete');
     Route::get('/kartu-stok/download', [KartuStokController::class, 'downloadCsv'])->name('kartuStok.download');
     Route::get('kartu-stok/history/{id}', [ViewController::class, 'showHistory'])->name('kartuStok.history');
-    
-    Route::post('/user/update/{iduser}', [AuthController::class, 'update'])->name('user.update');
-    Route::post('/user/delete/{iduser}', [AuthController::class, 'delete'])->name('user.delete');
+    Route::post('/search-kartu-stok', [KartuStokController::class, 'searchKartuStok'])->name('search.kartu.stok');
 
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/role', [ViewController::class, 'role'])->name('role');
-    Route::get('/test', [ViewController::class, 'test'])->name('test');
+    Route::get('/addrole', [ViewController::class, 'addrole'])->name('addrole');
+    Route::post('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::delete('/roles/delete/{id}', [RoleController::class, 'delete'])->name('roles.delete');
+
+    Route::get('/adduser', [ViewController::class, 'adduser'])->name('adduser');
+    Route::post('/users/store', [UserController::class, 'create'])->name('users.store');
+    Route::delete('/users/destroy/{id}', [UserController::class, 'delete'])->name('users.destroy');
+
+    Route::get('/addvendor', [ViewController::class, 'addvendor'])->name('addvendor');
+    Route::post('/vendor/create', [VendorController::class, 'create'])->name('vendor.create');
+    Route::delete('/vendor/delete/{id}', [VendorController::class, 'delete'])->name('vendor.delete');
+
+    Route::get('/pengadaan', [PengadaanController::class, 'index'])->name('pengadaan.index');
+    Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
+    Route::get('/pengadaan/create', [PengadaanController::class, 'create'])->name('pengadaan.create');
+    Route::get('/pengadaan/caribarang', [PengadaanController::class, 'caribarang'])->name('pengadaan.caribarang');
+    Route::post('/pengadaan/store', [PengadaanController::class, 'store'])->name('pengadaan.store');
+    
+    Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });
 
 Route::group(['middleware' => 'NotLogin'], function () {
