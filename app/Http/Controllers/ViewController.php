@@ -13,12 +13,23 @@ class ViewController extends Controller
     public function dashboard()
     {
         $validUser = Auth::user();
-        return view('dashboardadmin', compact('validUser'));
+        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status
+            FROM pengadaan p
+            JOIN users u ON p.users_iduser = u.iduser
+            JOIN vendor v ON p.vendor_idvendor = v.idvendor
+        ');
+        return view('dashboardadmin', compact('validUser','pengadaans'));
     }
     public function dashboarduser()
     {
         $validUser = Auth::user();
-        return view('dashboarduser', compact('validUser'));
+        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status
+            FROM pengadaan p
+            JOIN users u ON p.users_iduser = u.iduser
+            JOIN vendor v ON p.vendor_idvendor = v.idvendor
+        ');
+        // @dd($pengadaans);
+        return view('dashboarduser', compact('validUser','pengadaans'));
     }
     public function login()
     {

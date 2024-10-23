@@ -9,6 +9,7 @@ use App\Http\Controllers\KartuStokController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\PengadaanController;
 
 Route::group(['middleware' => 'isLogin'], function () {
     Route::get('/admin', [ViewController::class, 'dashboard'])->name('index.admin');
@@ -46,11 +47,12 @@ Route::group(['middleware' => 'isLogin'], function () {
     Route::delete('/vendor/delete/{id}', [VendorController::class, 'delete'])->name('vendor.delete');
 
     Route::get('/pengadaan', [PengadaanController::class, 'index'])->name('pengadaan.index');
-    Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
     Route::get('/pengadaan/create', [PengadaanController::class, 'create'])->name('pengadaan.create');
     Route::get('/pengadaan/caribarang', [PengadaanController::class, 'caribarang'])->name('pengadaan.caribarang');
     Route::post('/pengadaan/store', [PengadaanController::class, 'store'])->name('pengadaan.store');
-    
+    Route::post('/caribarang', [PengadaanController::class, 'caribarang'])->name('caribarang');
+    Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
+
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });
 

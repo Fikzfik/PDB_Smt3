@@ -11,12 +11,14 @@
     <title>
        Pengadaan
     </title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!--     Fonts and icons     -->
     <link rel="stylesheet" type="text/css"
         href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
     <!-- Nucleo Icons -->
+    <link href="{{ asset('./assets/css/material-kit.css') }}" rel="stylesheet" />
     <link href="{{ asset('./assets/css/nucleo-icons.css') }}" rel="stylesheet" />
-    <link href="{{ asset('./assets/css/nucleo-svg.css') }}" rel="stylesheet" />
     <link href="{{ asset('./assets/css/nucleo-svg.css') }}" rel="stylesheet" />
     <link href="{{ asset('./assets/css/style.css') }}" rel="stylesheet" />
     <!-- Font Awesome Icons -->

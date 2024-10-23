@@ -6599,6 +6599,7 @@ fieldset:disabled .btn {
 }
 
 .modal-backdrop {
+  z-index: 1050;
   --bs-backdrop-zindex: 1040;
   --bs-backdrop-bg: #000;
   --bs-backdrop-opacity: 0.5;
@@ -6616,6 +6617,7 @@ fieldset:disabled .btn {
 }
 
 .modal-backdrop.show {
+  
   opacity: var(--bs-backdrop-opacity);
 }
 
