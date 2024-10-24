@@ -13,12 +13,27 @@ class ViewController extends Controller
     public function dashboard()
     {
         $validUser = Auth::user();
-        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status
+
+        // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
+        $detail = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
+               dp.iddetail_pengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan
+        FROM pengadaan p
+        JOIN users u ON p.users_iduser = u.iduser
+        JOIN vendor v ON p.vendor_idvendor = v.idvendor
+        JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
+        JOIN barang b ON dp.idbarang = b.idbarang
+        JOIN satuan s ON b.idsatuan = s.idsatuan
+    ');
+        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status,p.timestamp
             FROM pengadaan p
             JOIN users u ON p.users_iduser = u.iduser
             JOIN vendor v ON p.vendor_idvendor = v.idvendor
         ');
-        return view('dashboardadmin', compact('validUser','pengadaans'));
+        // Count pending procurements
+        $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
+        $jumlahPending = $jumlahPending[0]->total;
+
+        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending','detail'));
     }
     public function dashboarduser()
     {
@@ -29,7 +44,7 @@ class ViewController extends Controller
             JOIN vendor v ON p.vendor_idvendor = v.idvendor
         ');
         // @dd($pengadaans);
-        return view('dashboarduser', compact('validUser','pengadaans'));
+        return view('dashboarduser', compact('validUser', 'pengadaans'));
     }
     public function login()
     {
@@ -66,21 +81,21 @@ class ViewController extends Controller
     {
         $validUser = Auth::user();
         $vendors = DB::select('SELECT * FROM vendor');
-        return view('vendor.index',compact('validUser','vendors'));
+        return view('vendor.index', compact('validUser', 'vendors'));
     }
     public function addrole()
     {
         $validUser = Auth::user();
         $barang = DB::select('SELECT * FROM Barang');
         $roles = DB::select('SELECT * FROM role');
-        return view('addrole.index',compact('roles'));
+        return view('addrole.index', compact('roles'));
     }
     public function adduser()
     {
         $validUser = Auth::user();
         $roles = DB::select('SELECT * FROM role');
         $users = DB::select('SELECT * FROM users');
-        return view('user.index',compact('roles','users'));
+        return view('user.index', compact('roles', 'users'));
     }
     public function test()
     {

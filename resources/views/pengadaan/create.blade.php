@@ -144,7 +144,8 @@
                                     <div class="col-md-6">
                                         <h4>Total Harga Barang:</h4>
                                         <h5 id="displayTotal">Rp. 0,00</h5>
-                                        <input type="hidden" id="value_totalnilai" name="value_totalnilai" value="0">
+                                        <input type="hidden" id="value_totalnilai" name="value_totalnilai"
+                                            value="0">
                                     </div>
                                     <div class="col-md-6">
                                         <h4>PPN (11%):</h4>
@@ -309,13 +310,14 @@
 
             barangPilih.forEach(item => {
                 let row = `<tr id="row-${item.id_barang}">
-                    <td>${item.id_barang}</td>
-                    <td>${item.nama_barang}</td>
-                    <td>${item.harga.toLocaleString('id-ID')}</td>
-                    <td><input type="number" id="quantity-${item.id_barang}" value="${item.quantity}" onchange="updateSubtotal(${item.id_barang})" style="width: 5%;"></td>
-                    <td id="subtotal-${item.id_barang}">${item.subtotal.toLocaleString('id-ID')}</td>
-                    <td><button type="button" onclick="hapusBarang(${item.id_barang})" class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button></td>
-                </tr>`;
+            <td>${item.id_barang}</td>
+            <td>${item.nama_satuan}</td> <!-- Tambahkan kolom satuan -->
+            <td>${item.nama_barang}</td>
+            <td>${item.harga.toLocaleString('id-ID')}</td>
+            <td><input type="number" id="quantity-${item.id_barang}" value="${item.quantity}" onchange="updateSubtotal(${item.id_barang})" style="width: 10%;"></td>
+            <td id="subtotal-${item.id_barang}">${item.subtotal.toLocaleString('id-ID')}</td>
+            <td><button type="button" onclick="hapusBarang(${item.id_barang})" class="btn btn-danger"><i class="bi bi-trash3-fill"></i>Delete</button></td>
+        </tr>`;
                 $('#tableList tbody').append(row);
             });
         }
@@ -349,7 +351,7 @@
                 style: 'currency',
                 currency: 'IDR'
             }));
-            
+
             $('#value_totalnilai').val(total); // Set hidden field for subtotal
             $('#displayTotal').text(displayTotal.toLocaleString('id-ID', {
                 style: 'currency',
@@ -432,7 +434,7 @@
                         if (response.message === 'success') {
                             Swal.fire("SUCCESS!", "Data Berhasil Disimpan", "success").then(
                                 () => {
-                                    window.location.href = '/pengadaan';
+                                    window.location.href = '/pengadaan/create';
                                 });
                         }
                     },

@@ -11,7 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PengadaanController;
 
-Route::group(['middleware' => 'isLogin'], function () {
+Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin', [ViewController::class, 'dashboard'])->name('index.admin');
     Route::get('/', [ViewController::class, 'dashboarduser'])->name('index.user');
 
@@ -52,13 +52,26 @@ Route::group(['middleware' => 'isLogin'], function () {
     Route::post('/pengadaan/store', [PengadaanController::class, 'store'])->name('pengadaan.store');
     Route::post('/caribarang', [PengadaanController::class, 'caribarang'])->name('caribarang');
     Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
+    Route::get('/pengadaan/detailvalidasi/{id}', [PengadaanController::class, 'detailvalidasi'])->name('pengadaan.detailvalidasi');
+
+
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
+
 });
 
-Route::group(['middleware' => 'NotLogin'], function () {
+Route::group(['middleware' => 'guest'], function () {
     Route::get('/login', [ViewController::class, 'login'])->name('login');
     Route::get('/register', [ViewController::class, 'register'])->name('register');
     Route::post('/user/create', [AuthController::class, 'create'])->name('user.create');
     Route::post('/user/login', [AuthController::class, 'loginpost'])->name('user.login');
+    Route::get('/dataTable', function () {
+        return view('dataTable');
+    });
+    Route::get('/lineCharts', function () {
+        return view('lineCharts');
+    });
+    Route::get('/htmlToPdf', function () {
+        return view('htmlToPdf');
+    });
 });

@@ -1,5 +1,5 @@
 <header class="header-2">
-    <div class="page-header min-vh-80 relative" style="background-image: url('./assets/img/bg9.jpg')">
+    <div class="page-header min-vh-80 relative" style="background-image: url('./assets/img/bg2.jpg')">
         <span class="mask bg-gradient-primary opacity-1"></span>
         <div class="container">
             <div class="row">
