@@ -45,48 +45,103 @@
                 </div>
             </div>
         </section>
-
         <section class="my-5 py-5">
             <div class="container">
-                <div class="row align-items-center">
-                    @foreach ($pengadaans as $p)
-                        <div class="col-lg-4 ms-auto me-auto p-lg-4 mt-lg-0 mt-4">
-                            <div class="rotating-card-container">
-                                <div class="card card-rotate card-background card-background-mask-primary shadow-primary mt-md-0 mt-5"
-                                    onclick="detail({{ $p->idpengadaan }})">
-                                    <div class="front front-background"
-                                        style="background-image: url(https://images.unsplash.com/photo-1569683795645-b62e50fbf103?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=987&q=80); background-size: cover;">
-                                        <div class="card-body py-7 text-center">
-                                            <h3 class="text-white">Status Pengadaan</h3>
-                                            <h3><span
-                                                    class="text-warning">{{ $p->status == 'A' ? 'Pending' : 'Completed' }}</span>
-                                            </h3>
-                                            <p class="text-white opacity-8"><b>Nama Yang Ingin Melakukan Pengadaan:
-                                                    {{ $p->username }} </b><br> Total Nilai Pengadaan:
-                                                {{ $p->total_nilai }}</p>
+                <h2 class="text-center mb-5">Permintaan Pengadaan</h2>
+                <div id="pengadaanCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        @foreach (array_chunk($pengadaans, 3) as $chunk)
+                            <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                                <div class="row align-items-center">
+                                    @foreach ($chunk as $p)
+                                        <div class="col-lg-4 ms-auto me-auto p-lg-4 mt-lg-0 mt-4">
+                                            <div class="rotating-card-container">
+                                                <div class="card card-rotate card-background card-background-mask-primary shadow-primary mt-md-0 mt-5"
+                                                    onclick="detail({{ $p->idpengadaan }})">
+                                                    <div class="front front-background"
+                                                        style="background-image: url('https://images.unsplash.com/photo-1569683795645-b62e50fbf103?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=987&q=80'); background-size: cover;">
+                                                        <div class="card-body py-7 text-center">
+                                                            <h3 class="text-white">Status Pengadaan</h3>
+                                                            <h3>
+                                                                <span class="text-warning">
+                                                                    {{ $p->status == 'A' ? 'Pending' : 'Completed' }}
+                                                                </span>
+                                                            </h3>
+                                                            <p class="text-white opacity-8">
+                                                                <b>Nama Yang Ingin Melakukan Pengadaan:
+                                                                    {{ $p->username }}</b><br>
+                                                                Total Nilai Pengadaan: {{ $p->total_nilai }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="back back-background"
+                                                        style="background-image: url('https://images.unsplash.com/photo-1498889444388-e67ea62c464b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1365&q=80'); background-size: cover;">
+                                                        <div class="card-body pt-7 text-center">
+                                                            <h3 class="text-white">Detail Pengadaan</h3>
+                                                            <p class="text-white opacity-8">
+                                                                <b>Nama Yang Ingin Melakukan Pengadaan:
+                                                                    {{ $p->username }}</b><br>
+                                                                Total Nilai Pengadaan: {{ $p->total_nilai }}<br>
+                                                                Tanggal Pengadaan:
+                                                                {{ \Carbon\Carbon::parse($p->timestamp)->format('d-m-Y H:i') }}<br>
+                                                                Nilai PPN: {{ $p->ppn }}
+                                                            </p>
+                                                            <a href="#" class="btn btn-white btn-sm w-50 mx-auto mt-3"
+                                                                onclick="detail({{ $p->idpengadaan }})">Lihat Detail</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="back back-background"
-                                        style="background-image: url(https://images.unsplash.com/photo-1498889444388-e67ea62c464b?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1365&q=80); background-size: cover;">
-                                        <div class="card-body pt-7 text-center">
-                                            <h3 class="text-white">Detail Pengadaan</h3>
-                                            <p class="text-white opacity-8"><b>Nama Yang Ingin Melakukan Pengadaan:
-                                                    {{ $p->username }}</b><br> Total Nilai Pengadaan: {{ $p->total_nilai }}
-                                                <br> Tanggal Pengadaan:
-                                                {{ \Carbon\Carbon::parse($p->timestamp)->format('d-m-Y H:i') }} <br> Nilai
-                                                PPN: {{ $p->ppn }}
-                                            </p>
-                                            <a href="#" class="btn btn-white btn-sm w-50 mx-auto mt-3"
-                                                onclick="detail({{ $p->idpengadaan }})">Lihat Detail</a>
-                                        </div>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#pengadaanCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#pengadaanCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
                 </div>
+
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center mt-4">
+                        @for ($i = 0; $i < ceil(count($pengadaans) / 3); $i++)
+                            <li class="page-item {{ $i == 0 ? 'active' : '' }}">
+                                <button class="page-link" data-bs-target="#pengadaanCarousel"
+                                    data-bs-slide-to="{{ $i }}">
+                                    {{ $i + 1 }}
+                                </button>
+                            </li>
+                        @endfor
+                    </ul>
+                </nav>
             </div>
         </section>
+
+        <!-- Tambahkan CSS untuk hover dan style tombol aktif -->
+        <style>
+            .pagination .page-item .page-link:hover {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+                cursor: pointer;
+            }
+
+            .pagination .page-item.active .page-link {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+        </style>
+
+
 
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
             data-bs-backdrop="false">
@@ -136,9 +191,23 @@
             </div>
         </div>
 
-
     </div>
+    <script>
+        const carousel = document.querySelector('#pengadaanCarousel');
+        const paginationItems = document.querySelectorAll('.pagination .page-item');
 
+        carousel.addEventListener('slide.bs.carousel', function(event) {
+            const activeIndex = event.to;
+
+            paginationItems.forEach((item, index) => {
+                if (index === activeIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        });
+    </script>
     <script>
         function detail(id) {
             $.ajax({
