@@ -7,6 +7,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Carbon\Carbon;
 
 class PengadaanController extends Controller
 {
@@ -94,6 +95,121 @@ class PengadaanController extends Controller
             );
         }
     }
+    public function terimaPengadaan(Request $request, $idpengadaan)
+    {
+        $detailPengadaan = DB::select(
+            "SELECT dp.idbarang, dp.jumlah, ks.stock
+        FROM detail_pengadaan dp
+        JOIN barang b ON dp.idbarang = b.idbarang
+        JOIN (
+            SELECT idbarang, stock
+            FROM kartu_stok
+            WHERE create_at = (
+                SELECT MAX(create_at)
+                FROM kartu_stok ks2
+                WHERE ks2.idbarang = kartu_stok.idbarang
+            )
+        ) ks ON ks.idbarang = b.idbarang
+        WHERE dp.idpengadaan = ?",
+            [$idpengadaan],
+        );
+
+        // Cek apakah jumlah permintaan melebihi stok yang tersedia
+        foreach ($detailPengadaan as $item) {
+            if ($item->jumlah > $item->stock) {
+                return response()->json(
+                    [
+                        'status' => 'error',
+                        'message' => 'Stok tidak mencukupi untuk item: ' . $item->idbarang,
+                    ],
+                    400,
+                );
+            }
+        }
+
+        // Mulai transaksi untuk memastikan semua data tersimpan dengan benar
+        try {
+            // Insert data ke tabel penerimaan
+            DB::insert(
+                "INSERT INTO penerimaan (created_at, status, idpengadaan, iduser)
+            VALUES (?, ?, ?, ?)",
+                [Carbon::now(), 'A', $idpengadaan, auth()->user()->iduser],
+            );
+
+            // Ambil ID penerimaan terakhir yang baru saja dimasukkan
+            $idpenerimaan = DB::getPdo()->lastInsertId();
+
+            foreach ($detailPengadaan as $item) {
+                // Insert ke tabel detail_penerimaan dan update stok di kartu_stok
+                $hargaSatuan = DB::selectOne(
+                    "SELECT harga
+                FROM barang
+                WHERE idbarang = ?",
+                    [$item->idbarang],
+                )->harga;
+
+                $subTotal = $hargaSatuan * $item->jumlah;
+
+                DB::insert(
+                    "INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang)
+                VALUES (?, ?, ?, ?, ?)",
+                    [$item->jumlah, $hargaSatuan, $subTotal, $idpenerimaan, $item->idbarang],
+                );
+
+                $newStock = $item->stock - $item->jumlah;
+                DB::insert(
+                    "INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi)
+                VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    ['K', 0, $item->jumlah, $newStock, $item->idbarang, Carbon::now(), $idpengadaan],
+                );
+            }
+
+            // Update status pengadaan menjadi "B"
+            DB::update(
+                "UPDATE pengadaan
+            SET status = 'B'
+            WHERE idpengadaan = ?",
+                [$idpengadaan],
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pengadaan berhasil diterima, stok berhasil diperbarui, dan status pengadaan diubah menjadi "B"',
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Rollback transaksi jika ada error
+            DB::rollBack();
+
+            // Ambil pesan error spesifik dan query yang menyebabkan error
+            $errorMessage = $e->getMessage();
+            $sql = $e->getSql();
+            $bindings = implode(', ', $e->getBindings());
+
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'Terjadi kesalahan SQL: ' . $errorMessage,
+                    'query' => $sql,
+                    'bindings' => $bindings,
+                ],
+                500,
+            );
+        } catch (\Exception $e) {
+            // Rollback transaksi jika ada error umum
+            DB::rollBack();
+
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
     public function detail($id)
     {
         try {
@@ -126,32 +242,53 @@ class PengadaanController extends Controller
     public function detailvalidasi($id)
     {
         try {
-            // Mengambil detail pengadaan berdasarkan ID pengadaan yang diberikan
+            $stoktrakhir = DB::select(
+                'SELECT ks1.idbarang, ks1.stock
+            FROM kartu_stok ks1
+            JOIN (
+                SELECT idbarang, MAX(create_at) AS last_create_at
+                FROM kartu_stok
+                GROUP BY idbarang
+            ) ks2 ON ks1.idbarang = ks2.idbarang AND ks1.create_at = ks2.last_create_at;',
+            );
+
             $detailPengadaan = DB::select(
-                'SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
-                   dp.iddetail_pengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan
+                'SELECT
+                p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
+                dp.iddetail_pengadaan, b.nama AS nama_barang, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan,
+                ks.stock AS latest_stock, b.idbarang
             FROM pengadaan p
             JOIN users u ON p.users_iduser = u.iduser
             JOIN vendor v ON p.vendor_idvendor = v.idvendor
             JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
             JOIN barang b ON dp.idbarang = b.idbarang
             JOIN satuan s ON b.idsatuan = s.idsatuan
+            LEFT JOIN (
+                SELECT idbarang, stock
+                FROM kartu_stok
+                WHERE create_at = (
+                    SELECT MAX(create_at)
+                    FROM kartu_stok ks2
+                    WHERE ks2.idbarang = kartu_stok.idbarang
+                )
+            ) ks ON b.idbarang = ks.idbarang
             WHERE p.idpengadaan = ?',
                 [$id],
-            ); // Kondisi untuk mengambil data berdasarkan ID pengadaan
+            );
 
-            // Memeriksa apakah ada data yang ditemukan
             if (empty($detailPengadaan)) {
                 return response()->json(['message' => 'Data tidak ditemukan!'], 404);
             }
 
-            // Mengembalikan data detail pengadaan sebagai JSON
-            return response()->json($detailPengadaan);
+            return response()->json([
+                'stoktrakhir' => $stoktrakhir,
+                'detailPengadaan' => $detailPengadaan,
+            ]);
         } catch (\Exception $e) {
             return response()->json(
                 [
                     'message' => 'Terjadi kesalahan saat mengambil detail pengadaan.',
-                    'error' => $e->getMessage(), // Menyertakan pesan kesalahan
+                    'error' => $e->getMessage(),
                 ],
                 500,
             );

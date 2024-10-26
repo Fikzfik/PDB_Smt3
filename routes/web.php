@@ -26,12 +26,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/barang/delete/{id}', [BarangController::class, 'delete'])->name('barang.delete');
 
     Route::get('/kartu-stok', [ViewController::class, 'kartuStok'])->name('kartuStok');
-    Route::post('kartu_stok', [KartuStokController::class, 'store'])->name('kartuStok.store');
+    Route::post('kartu-stok/store', [KartuStokController::class, 'store'])->name('kartuStok.store');
     Route::get('/kartu-stok/{idkartu_stok}/edit', [KartuStokController::class, 'edit'])->name('kartuStok.edit');
-    Route::post('/kartu-stok/{idkartu_stok}/update', [KartuStokController::class, 'update'])->name('kartuStok.update');
-    Route::post('/kartu-stok/{idkartu_stok}/delete', [KartuStokController::class, 'delete'])->name('kartuStok.delete');
-    Route::get('/kartu-stok/download', [KartuStokController::class, 'downloadCsv'])->name('kartuStok.download');
-    Route::get('kartu-stok/history/{id}', [ViewController::class, 'showHistory'])->name('kartuStok.history');
+    Route::put('/kartu-stok/{idkartu_stok}/update', [KartuStokController::class, 'update'])->name('kartuStok.update');
+    Route::delete('/kartu-stok/{idkartu_stok}/delete', [KartuStokController::class, 'delete'])->name('kartuStok.delete');
+    Route::get('/kartu-stok/history/{id}', [KartuStokController::class, 'getHistory']);
     Route::post('/search-kartu-stok', [KartuStokController::class, 'searchKartuStok'])->name('search.kartu.stok');
 
     Route::get('/addrole', [ViewController::class, 'addrole'])->name('addrole');
@@ -53,11 +52,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/caribarang', [PengadaanController::class, 'caribarang'])->name('caribarang');
     Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
     Route::get('/pengadaan/detailvalidasi/{id}', [PengadaanController::class, 'detailvalidasi'])->name('pengadaan.detailvalidasi');
-
-
+    Route::post('/pengadaan/terima/{id}', [PengadaanController::class, 'terimaPengadaan']);
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
-
 });
 
 Route::group(['middleware' => 'guest'], function () {

@@ -17,23 +17,24 @@ class ViewController extends Controller
         // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
         $detail = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
                dp.iddetail_pengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan
-        FROM pengadaan p
-        JOIN users u ON p.users_iduser = u.iduser
-        JOIN vendor v ON p.vendor_idvendor = v.idvendor
-        JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
-        JOIN barang b ON dp.idbarang = b.idbarang
-        JOIN satuan s ON b.idsatuan = s.idsatuan
+            FROM pengadaan p
+            JOIN users u ON p.users_iduser = u.iduser
+            JOIN vendor v ON p.vendor_idvendor = v.idvendor
+            JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
+            JOIN barang b ON dp.idbarang = b.idbarang
+            JOIN satuan s ON b.idsatuan = s.idsatuan
     ');
         $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status,p.timestamp
             FROM pengadaan p
             JOIN users u ON p.users_iduser = u.iduser
             JOIN vendor v ON p.vendor_idvendor = v.idvendor
+            WHERE p.status = "A"
         ');
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
         $jumlahPending = $jumlahPending[0]->total;
-
-        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending','detail'));
+        
+        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'detail'));
     }
     public function dashboarduser()
     {
@@ -73,9 +74,20 @@ class ViewController extends Controller
     public function kartustok()
     {
         $validUser = Auth::user();
-        $barang = DB::select('SELECT * FROM Barang');
-        $kartu_stok = DB::select('SELECT * FROM kartu_stok JOIN barang ON Barang.idbarang = kartu_stok.idbarang');
-        return view('kartustok.index', compact('validUser', 'barang', 'kartu_stok'));
+        $barang = DB::select("SELECT barang.idbarang, barang.nama, ks.stok_terakhir
+            FROM barang
+            LEFT JOIN (
+                SELECT idbarang, stock AS stok_terakhir
+                FROM kartu_stok
+                WHERE (idbarang, create_at) IN (
+                    SELECT idbarang, MAX(create_at)
+                    FROM kartu_stok
+                    GROUP BY idbarang
+                )
+            ) AS ks ON barang.idbarang = ks.idbarang
+        ");
+
+        return view('kartustok.index', compact('validUser', 'barang'));
     }
     public function addvendor()
     {
