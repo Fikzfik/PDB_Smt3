@@ -66,11 +66,35 @@ class ReturnController extends Controller
                     VALUES (?, ?, ?, ?)',
                         [$detailPenerimaan->jumlah_terima, $request->input('alasan')[$itemId] ?? 'No reason provided', $returId, $itemId],
                     );
+
+                    // Hapus data di `detail_retur` yang terkait dengan `iddetail_penerimaan`
+                    DB::delete('DELETE FROM detail_retur WHERE iddetail_penerimaan = ?', [$itemId]);
+
+                    // Hapus `detail_penerimaan` yang sudah di-retur
+                    DB::delete('DELETE FROM detail_penerimaan WHERE iddetail_penerimaan = ?', [$itemId]);
                 }
             }
 
+            // Periksa apakah masih ada item di `detail_penerimaan` untuk penerimaan ini
+            $remainingDetails = DB::selectOne(
+                'SELECT COUNT(*) as count
+            FROM detail_penerimaan
+            WHERE idpenerimaan = ?',
+                [$idPenerimaan],
+            );
+
+            // Jika tidak ada item yang tersisa, ubah status `penerimaan` menjadi "B"
+            if ($remainingDetails->count == 0) {
+                DB::update(
+                    'UPDATE penerimaan
+                SET status = "B"
+                WHERE idpenerimaan = ?',
+                    [$idPenerimaan],
+                );
+            }
+
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Items successfully returned and stock updated.']);
+            return response()->json(['status' => 'success', 'message' => 'Items successfully returned, stock updated, and status updated if no items remain.']);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()], 500);

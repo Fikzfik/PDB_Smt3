@@ -16,6 +16,7 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <h4>Pengadaan Details</h4>
+                                                {{-- @dd(); --}}
                                                 <table class="table table-bordered">
                                                     <thead>
                                                         <tr>
@@ -29,9 +30,9 @@
                                                         @foreach ($pengadaanDetails as $item)
                                                             <tr>
                                                                 <td>{{ $item->barang }}</td>
-                                                                <td>{{ $item->harga_satuan }}</td>
+                                                                <td>{{ number_format($item->harga_satuan, 2) }}</td>
                                                                 <td>{{ $item->jumlah }}</td>
-                                                                <td>{{ $item->sub_total }}</td>
+                                                                <td>{{ number_format($item->sub_total, 2) }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -49,7 +50,7 @@
                                                 <!-- Return Items Form -->
                                                 <form id="returnForm" action="{{ route('returnItems') }}" method="POST">
                                                     @csrf
-                                                    <input type="hidden" name="idpenerimaan" value="{{ $idPenerimaan }}">
+                                                    <input type="hidden" name="idpenerimaan" value="{{ $idPenerimaan->idpenerimaan }}">
                                                     <table class="table table-bordered">
                                                         <thead>
                                                             <tr>

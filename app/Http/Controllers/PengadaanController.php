@@ -126,12 +126,10 @@ class PengadaanController extends Controller
             }
 
             // Menambahkan data ke tabel `penerimaan` dan mendapatkan ID terakhir yang dimasukkan
-            DB::insert(
-                'INSERT INTO penerimaan (created_at, status, idpengadaan, iduser)
-            VALUES (?, ?, ?, ?)',
-                [now(), 'A', $idpengadaan, auth()->user()->iduser],
-            );
-            $idpenerimaan = DB::selectOne('SELECT LAST_INSERT_ID() as id')->id;
+            DB::insert('INSERT INTO penerimaan (created_at, status, idpengadaan, iduser) VALUES (?, ?, ?, ?)', [now(), 'A', $idpengadaan, auth()->user()->iduser]);
+
+            // Mendapatkan `idpenerimaan` paling akhir berdasarkan waktu pembuatan
+            $idpenerimaan = DB::selectOne('SELECT idpenerimaan FROM penerimaan ORDER BY created_at DESC LIMIT 1')->idpenerimaan;
 
             foreach ($items as $item) {
                 // Mengambil harga satuan dari tabel `barang`
