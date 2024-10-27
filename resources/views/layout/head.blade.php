@@ -26,6 +26,8 @@
 <link href="{{ asset('./assets/css/nucleo-svg.css') }}" rel="stylesheet" />
 <link href="{{ asset('./assets/css/style.css') }}" rel="stylesheet" />
 <!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
 <!-- Material Icons -->
 <!-- CSS Files -->

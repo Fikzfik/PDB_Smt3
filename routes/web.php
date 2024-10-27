@@ -10,6 +10,8 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PengadaanController;
+use App\Http\Controllers\PenerimaanController;
+use App\Http\Controllers\ReturnController;
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin', [ViewController::class, 'dashboard'])->name('index.admin');
@@ -53,6 +55,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
     Route::get('/pengadaan/detailvalidasi/{id}', [PengadaanController::class, 'detailvalidasi'])->name('pengadaan.detailvalidasi');
     Route::post('/pengadaan/terima/{id}', [PengadaanController::class, 'terimaPengadaan']);
+    
+    Route::get('/penerimaan', [ViewController::class, 'penerimaan'])->name('penerimaan.index');
+    Route::get('/penerimaan/comparison/{id}',[PenerimaanController::class,'viewPenerimaanComparison'])->name('penerimaan.comparison');
+
+    Route::post('/return-items', [ReturnController::class, 'return'])->name('returnItems');
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });

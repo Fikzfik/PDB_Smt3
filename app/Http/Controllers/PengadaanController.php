@@ -97,109 +97,94 @@ class PengadaanController extends Controller
     }
     public function terimaPengadaan(Request $request, $idpengadaan)
     {
-        $detailPengadaan = DB::select(
-            "SELECT dp.idbarang, dp.jumlah, ks.stock
-        FROM detail_pengadaan dp
-        JOIN barang b ON dp.idbarang = b.idbarang
-        JOIN (
-            SELECT idbarang, stock
-            FROM kartu_stok
-            WHERE create_at = (
-                SELECT MAX(create_at)
-                FROM kartu_stok ks2
-                WHERE ks2.idbarang = kartu_stok.idbarang
-            )
-        ) ks ON ks.idbarang = b.idbarang
-        WHERE dp.idpengadaan = ?",
-            [$idpengadaan],
-        );
+        $items = $request->input('items');
 
-        // Cek apakah jumlah permintaan melebihi stok yang tersedia
-        foreach ($detailPengadaan as $item) {
-            if ($item->jumlah > $item->stock) {
-                return response()->json(
-                    [
-                        'status' => 'error',
-                        'message' => 'Stok tidak mencukupi untuk item: ' . $item->idbarang,
-                    ],
-                    400,
-                );
-            }
-        }
+        DB::beginTransaction();
 
-        // Mulai transaksi untuk memastikan semua data tersimpan dengan benar
         try {
-            // Insert data ke tabel penerimaan
+            // Mengecek ketersediaan stok
+            foreach ($items as $item) {
+                $detail = DB::selectOne(
+                    'SELECT dp.jumlah, ks.stock
+                FROM detail_pengadaan dp
+                JOIN kartu_stok ks ON dp.idbarang = ks.idbarang
+                WHERE dp.idpengadaan = ? AND dp.idbarang = ?
+                ORDER BY ks.create_at DESC
+                LIMIT 1',
+                    [$idpengadaan, $item['idbarang']],
+                );
+
+                if ($item['quantity'] > $detail->stock) {
+                    return response()->json(
+                        [
+                            'status' => 'error',
+                            'message' => 'Stok tidak mencukupi untuk item: ' . $item['idbarang'],
+                        ],
+                        400,
+                    );
+                }
+            }
+
+            // Menambahkan data ke tabel `penerimaan` dan mendapatkan ID terakhir yang dimasukkan
             DB::insert(
-                "INSERT INTO penerimaan (created_at, status, idpengadaan, iduser)
-            VALUES (?, ?, ?, ?)",
-                [Carbon::now(), 'A', $idpengadaan, auth()->user()->iduser],
+                'INSERT INTO penerimaan (created_at, status, idpengadaan, iduser)
+            VALUES (?, ?, ?, ?)',
+                [now(), 'A', $idpengadaan, auth()->user()->iduser],
             );
+            $idpenerimaan = DB::selectOne('SELECT LAST_INSERT_ID() as id')->id;
 
-            // Ambil ID penerimaan terakhir yang baru saja dimasukkan
-            $idpenerimaan = DB::getPdo()->lastInsertId();
-
-            foreach ($detailPengadaan as $item) {
-                // Insert ke tabel detail_penerimaan dan update stok di kartu_stok
+            foreach ($items as $item) {
+                // Mengambil harga satuan dari tabel `barang`
                 $hargaSatuan = DB::selectOne(
-                    "SELECT harga
+                    'SELECT harga
                 FROM barang
-                WHERE idbarang = ?",
-                    [$item->idbarang],
+                WHERE idbarang = ?',
+                    [$item['idbarang']],
                 )->harga;
 
-                $subTotal = $hargaSatuan * $item->jumlah;
+                $subTotal = $hargaSatuan * $item['quantity'];
 
+                // Mendapatkan stok saat ini dari `kartu_stok`
+                $currentStock = DB::selectOne(
+                    'SELECT stock
+                FROM kartu_stok
+                WHERE idbarang = ?
+                ORDER BY create_at DESC
+                LIMIT 1',
+                    [$item['idbarang']],
+                )->stock;
+
+                // Menambahkan data ke `detail_penerimaan`
                 DB::insert(
-                    "INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang)
-                VALUES (?, ?, ?, ?, ?)",
-                    [$item->jumlah, $hargaSatuan, $subTotal, $idpenerimaan, $item->idbarang],
+                    'INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang)
+                VALUES (?, ?, ?, ?, ?)',
+                    [$item['quantity'], $hargaSatuan, $subTotal, $idpenerimaan, $item['idbarang']],
                 );
 
-                $newStock = $item->stock - $item->jumlah;
+                // Menambahkan data ke `kartu_stok`
                 DB::insert(
-                    "INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi)
-                VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    ['K', 0, $item->jumlah, $newStock, $item->idbarang, Carbon::now(), $idpengadaan],
+                    'INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi)
+                VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    ['K', 0, $item['quantity'], $currentStock - $item['quantity'], $item['idbarang'], now(), $idpengadaan],
                 );
             }
 
-            // Update status pengadaan menjadi "B"
+            // Mengupdate status pengadaan di tabel `pengadaan`
             DB::update(
-                "UPDATE pengadaan
-            SET status = 'B'
-            WHERE idpengadaan = ?",
-                [$idpengadaan],
+                'UPDATE pengadaan
+            SET status = ?
+            WHERE idpengadaan = ?',
+                ['B', $idpengadaan],
             );
 
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Pengadaan berhasil diterima, stok berhasil diperbarui, dan status pengadaan diubah menjadi "B"',
+                'message' => 'Pengadaan berhasil diterima, stok diperbarui, dan status pengadaan diubah menjadi "B"',
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Rollback transaksi jika ada error
-            DB::rollBack();
-
-            // Ambil pesan error spesifik dan query yang menyebabkan error
-            $errorMessage = $e->getMessage();
-            $sql = $e->getSql();
-            $bindings = implode(', ', $e->getBindings());
-
-            return response()->json(
-                [
-                    'status' => 'error',
-                    'message' => 'Terjadi kesalahan SQL: ' . $errorMessage,
-                    'query' => $sql,
-                    'bindings' => $bindings,
-                ],
-                500,
-            );
         } catch (\Exception $e) {
-            // Rollback transaksi jika ada error umum
             DB::rollBack();
-
             return response()->json(
                 [
                     'status' => 'error',
@@ -215,9 +200,10 @@ class PengadaanController extends Controller
         try {
             // Mengambil detail pengadaan dengan raw SQL
             $detailPengadaan = DB::select(
-                'SELECT dp.iddetail_pengadaan, dp.idpengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total
+                'SELECT dp.iddetail_pengadaan, dp.idpengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, p.status,p.idpengadaan
             FROM detail_pengadaan dp
             JOIN barang b ON dp.idbarang = b.idbarang
+            JOIN pengadaan p on p.idpengadaan = dp.idpengadaan
             WHERE dp.idpengadaan = ?',
                 [$id],
             );

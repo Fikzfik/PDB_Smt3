@@ -1,5 +1,4 @@
-@extends('app', ['showHeader' => false])
-
+@extends('app', ['showHeader' => true])
 @section('field-content')
     <div class="page-header align-items-start min-vh-100"
         style="background-image: url('https://images.unsplash.com/photo-1497294815431-9365093b7331?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1950&q=80');"
@@ -53,7 +52,6 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {{-- @dd($pengadaans); --}}
                                                     @foreach ($pengadaans as $pengadaan)
                                                         <tr>
                                                             <td>{{ $pengadaan->idpengadaan }}</td>
@@ -135,34 +133,35 @@
                 success: function(data) {
                     $('#tableDetail tbody').empty();
                     if (data.length > 0) {
+                        // Get the procurement status from data[0] assuming status is the same for all details
                         const procurementStatus = data[0].status;
-
-                        // Populate the table with procurement details
-                        data.forEach(item => {
+                        console.log(procurementStatus);
+                        for (let i = 0; i < data.length; i++) {
                             let row = `
-                        <tr>
-                            <td>${item.iddetail_pengadaan}</td>
-                            <td>${item.idpengadaan}</td>
-                            <td>${item.nama}</td>
-                            <td>${item.harga_satuan}</td>
-                            <td>${item.jumlah}</td>
-                            <td>${item.sub_total}</td>
-                        </tr>`;
+                    <tr>
+                        <td>${data[i].iddetail_pengadaan}</td>
+                        <td>${data[i].idpengadaan}</td>
+                        <td>${data[i].nama}</td>
+                        <td>${data[i].harga_satuan}</td>
+                        <td>${data[i].jumlah}</td>
+                        <td>${data[i].sub_total}</td>
+                    </tr>`;
                             $('#tableDetail tbody').append(row);
-                        });
+                        }
 
-                        // Conditionally render footer buttons based on procurement status
+                        // Display the Penerimaan button if status is "B"
                         if (procurementStatus === "B") {
                             $('#modalFooter').html(`
-                        <button type="button" class="btn btn-success" onclick="penerimaan(${id})">Penerimaan</button>
-                        <button type="button" class="btn btn-info" onclick="window.location.href='/penerimaan/comparison/${id}'">View Comparison</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    `);
+                            <button type="button" class="btn btn-success" onclick="penerimaan(${id})">Penerimaan</button>
+                            <button type="button" class="btn btn-info" onclick="viewComparison(${id})">View Comparison</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        `);
                         } else {
                             $('#modalFooter').html(`
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    `);
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        `);
                         }
+
 
                         $('#exampleModal').modal('show');
                     } else {
@@ -175,8 +174,7 @@
                     }
                 },
                 error: function(xhr) {
-                    const errorMessage = xhr.responseJSON && xhr.responseJSON.error ?
-                        xhr.responseJSON.error :
+                    const errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error :
                         'Terjadi kesalahan saat mengambil data.';
                     Swal.fire({
                         icon: 'error',
@@ -188,25 +186,15 @@
             });
         }
 
-
         function viewComparison(id) {
             $.ajax({
                 type: 'GET',
                 url: `/penerimaan/comparison/${id}`,
                 dataType: 'json',
                 success: function(response) {
-                    // Check if there’s an error message in the response
-                    if (response.error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: response.error,
-                            confirmButtonText: 'OK'
-                        });
-                    } else {
-                        // If no error, proceed to redirect
-                        window.location.href = `/penerimaan/comparison/${id}`;
-                    }
+                    // Instead of displaying data in a modal, redirect to the desired route
+                    // Replace 'your-redirect-route' with the actual route or URL you want to redirect to
+                    window.location.href = '/your-redirect-route';
                 },
                 error: function(xhr) {
                     const errorMessage = xhr.responseJSON && xhr.responseJSON.error ?

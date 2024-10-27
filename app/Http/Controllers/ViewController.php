@@ -33,7 +33,7 @@ class ViewController extends Controller
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
         $jumlahPending = $jumlahPending[0]->total;
-        
+
         return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'detail'));
     }
     public function dashboarduser()
@@ -112,5 +112,16 @@ class ViewController extends Controller
     public function test()
     {
         return view('test');
+    }
+    public function penerimaan()
+    {
+        $validUser = Auth::user();
+        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status
+            FROM pengadaan p
+            JOIN users u ON p.users_iduser = u.iduser
+            JOIN vendor v ON p.vendor_idvendor = v.idvendor
+        ');
+        // @dd($pengadaans);
+        return view('penerimaan.index', compact('validUser', 'pengadaans'));
     }
 }

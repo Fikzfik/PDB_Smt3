@@ -194,40 +194,39 @@
     </script>
     <script>
         function terimaPengadaan() {
-            // Get the Pengadaan ID
-            const pengadaanId = $('#exampleModal').data('idpengadaan');
-            console.log("Pengadaan ID:", pengadaanId); // Debugging untuk memastikan nilainya
+            let idpengadaan = $('#exampleModal').data('idpengadaan');
+            let items = [];
+
+            $('#tableDetail tbody tr').each(function() {
+                let idbarang = $(this).find('.quantity-display').data('id');
+                let quantity = parseInt($(this).find('.quantity-display').text());
+
+                items.push({
+                    idbarang: idbarang,
+                    quantity: quantity
+                });
+            });
+
             $.ajax({
                 type: "POST",
-                url: `/pengadaan/terima/${pengadaanId}`,
+                url: `/pengadaan/terima/${idpengadaan}`,
                 data: {
-                    _token: '{{ csrf_token() }}' // CSRF token for security
+                    items: items,
+                    _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    if (response.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Pengadaan Diterima',
-                            text: 'Pengadaan telah berhasil diterima.',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            location.reload(); // Reload the page to update the list
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Stok Tidak Mencukupi',
-                            text: response.message,
-                            confirmButtonText: 'OK'
-                        });
-                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: response.message,
+                        confirmButtonText: 'OK'
+                    });
+                    $('#exampleModal').modal('hide');
+                    location.reload();
                 },
                 error: function(xhr) {
-                    let errorMessage = 'Gagal memproses penerimaan pengadaan.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message; // Tampilkan pesan kesalahan dari server
-                    }
-
+                    const errorMessage = xhr.responseJSON && xhr.responseJSON.message ?
+                        xhr.responseJSON.message : 'Terjadi kesalahan saat menyimpan data.';
                     Swal.fire({
                         icon: 'error',
                         title: 'Terjadi Kesalahan!',
