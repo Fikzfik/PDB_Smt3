@@ -12,6 +12,24 @@ use Illuminate\Support\Facades\Hash;
 
 class PenerimaanController extends Controller
 {
+    public function detailPenerimaan($idPengadaan)
+    {
+        try {
+            $detailPenerimaan = DB::select(
+                'SELECT dp.iddetail_penerimaan, b.nama AS nama_barang, dp.harga_satuan_terima, dp.jumlah_terima, dp.sub_total_terima, p.created_at AS tanggal_penerimaan
+             FROM detail_penerimaan dp
+             JOIN barang b ON dp.idbarang = b.idbarang
+             JOIN penerimaan p ON dp.idpenerimaan = p.idpenerimaan
+             WHERE p.idpengadaan = ?',
+                [$idPengadaan],
+            );
+
+            return response()->json($detailPenerimaan);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function viewPenerimaanComparison($id)
     {
         try {
@@ -50,4 +68,34 @@ class PenerimaanController extends Controller
                 ->with('error', 'Error fetching data: ' . $e->getMessage());
         }
     }
+   public function showReturnList($idPengadaan)
+{
+    // Mengambil semua penerimaan berdasarkan idPengadaan
+    $penerimaanList = DB::select(
+        "SELECT p.idpenerimaan, p.created_at AS tanggal_penerimaan
+        FROM penerimaan p
+        WHERE p.idpengadaan = ?",
+        [$idPengadaan]
+    );
+
+    // Mengambil detail penerimaan untuk setiap penerimaan
+    $detailPenerimaan = [];
+    foreach ($penerimaanList as $penerimaan) {
+        $detailPenerimaan[$penerimaan->idpenerimaan] = DB::select(
+            "SELECT pd.iddetail_penerimaan, b.nama, pd.jumlah_terima,
+            pd.harga_satuan_terima, pd.sub_total_terima
+            FROM detail_penerimaan pd
+            JOIN barang b ON b.idbarang = pd.idbarang
+            WHERE pd.idpenerimaan = ?",
+            [$penerimaan->idpenerimaan]
+        );
+    }
+    // @dd($penerimaanList,$detailPenerimaan,$idPengadaan);
+    return view('penerimaan.list', [
+        'penerimaanList' => $penerimaanList,
+        'detailPenerimaan' => $detailPenerimaan,
+        'idPengadaan' => $idPengadaan,
+    ]);
+}
+ 
 }

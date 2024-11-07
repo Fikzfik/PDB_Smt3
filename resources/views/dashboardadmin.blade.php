@@ -45,6 +45,7 @@
                 </div>
             </div>
         </section>
+
         <section class="my-5 py-5">
             <div class="container">
                 <h2 class="text-center mb-5">Permintaan Pengadaan</h2>
@@ -87,7 +88,8 @@
                                                                 Nilai PPN: {{ $p->ppn }}
                                                             </p>
                                                             <a href="#" class="btn btn-white btn-sm w-50 mx-auto mt-3"
-                                                                onclick="detail({{ $p->idpengadaan }})">Lihat Detail</a>
+                                                                data-idpengadaan="{{ $p->idpengadaan }}"
+                                                                onclick="detail(this)">Lihat Detail</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -124,10 +126,10 @@
                 </nav>
             </div>
         </section>
+
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
-            data-bs-backdrop="false" style="">
+            data-bs-backdrop="false">
             <div class="modal-dialog modal-xl" role="document">
-                <!-- Use modal-xl to make it wider -->
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel">Detail Pengadaan</h5>
@@ -137,35 +139,24 @@
                         <table class="table table-bordered" id="tableDetail">
                             <thead>
                                 <tr>
+                                    <th>
+                                        <input type="checkbox" id="checkAll"> <!-- Checkbox untuk Check All -->
+                                    </th>
                                     <th>No</th>
                                     <th>Nama Item</th>
                                     <th>Harga Satuan</th>
                                     <th>Satuan</th>
                                     <th>Jumlah</th>
                                     <th>Sub Total</th>
-                                    <th>Stock</th>
-                                    <th>Aksi</th>
+                                    <th>Stock yang Dibutuhkan</th> <!-- Ubah nama kolom ini -->
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Rows will be populated dynamically -->
                             </tbody>
                         </table>
-
-                        <!-- Total Nilai and PPN section -->
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <h6 class="fw-bold">PPN:</h6>
-                                <p id="ppn" class="text-primary fs-5 fw-bold">Rp 0</p>
-                                <!-- This will be updated via JavaScript -->
-                            </div>
-                            <div class="col-md-6 text-end"> <!-- Align Total Nilai to the right -->
-                                <h6 class="fw-bold">Total Nilai:</h6>
-                                <p id="totalNilai" class="text-success fs-5 fw-bold">Rp 0</p>
-                                <!-- This will be updated via JavaScript -->
-                            </div>
-                        </div>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" onclick="terimaPengadaan()">Terima
@@ -174,45 +165,126 @@
                 </div>
             </div>
         </div>
-
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
-        const carousel = document.querySelector('#pengadaanCarousel');
-        const paginationItems = document.querySelectorAll('.pagination .page-item');
+        $('#checkAll').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            console.log('Check All state changed:', isChecked);
 
-        carousel.addEventListener('slide.bs.carousel', function(event) {
-            const activeIndex = event.to;
+            $('#tableDetail tbody input[type="checkbox"].item-checkbox').each(function() {
+                $(this).prop('checked', isChecked);
+                const row = $(this).closest('tr');
+                const quantityInput = row.find('.quantity-input');
 
-            paginationItems.forEach((item, index) => {
-                if (index === activeIndex) {
-                    item.classList.add('active');
+                if (isChecked) {
+                    const neededStock = parseInt(row.find('td').eq(7).text());
+                    quantityInput.val(neededStock);
                 } else {
-                    item.classList.remove('active');
+                    quantityInput.val(0);
                 }
+
+                // Update subtotal untuk setiap row
+                updateSubtotal(quantityInput, parseInt(quantityInput.val()));
             });
         });
-    </script>
-    <script>
+
+        function detail(button) {
+            // Ambil ID pengadaan dari tombol yang ditekan
+            let idpengadaan = $(button).data('idpengadaan');
+
+            // Set ID pengadaan ke dalam modal
+            $('#exampleModal').data('idpengadaan', idpengadaan);
+
+            // Ambil detail pengadaan menggunakan AJAX
+            $.ajax({
+                url: '{{ route('pengadaan.detail', ':id') }}'.replace(':id', idpengadaan),
+                type: 'GET',
+                success: function(response) {
+                    $('#tableDetail tbody').empty(); // Kosongkan tbody
+
+                    // Looping untuk setiap item dalam response
+                    $.each(response, function(index, item) {
+                        const row = `<tr>
+                          <td>
+                            <input type="checkbox" class="item-checkbox" data-id="${item.idbarang}" 
+                                data-stok-yang-dibutuhkan="${item.stok_yang_dibutuhkan}" 
+                                onchange="handleCheckboxChange(this)">
+                        </td>
+                            <td>${index + 1}</td>
+                            <td>${item.nama}</td>
+                            <td>${item.harga_satuan}</td>
+                            <td>${item.nama_satuan}</td>
+                            <td>
+                                <input type="number" class="quantity-input" value="0" min="0" 
+                                       onchange="updateSubtotal(this, parseInt(this.value))">
+                            </td>
+                            <td>${(item.harga_satuan * item.jumlah).toFixed(2)}</td>
+                            <td>${item.stok_yang_dibutuhkan}</td> <!-- Stok yang dibutuhkan -->
+                        </tr>`;
+                        $('#tableDetail tbody').append(row); // Tambahkan row ke tbody
+                    });
+
+                    // Tampilkan modal
+                    $('#exampleModal').modal('show');
+                },
+                error: function(xhr) {
+                    console.error(xhr);
+                }
+            });
+        }
+
+        function handleCheckboxChange(checkbox) {
+            const row = $(checkbox).closest('tr');
+            const quantityInput = row.find('.quantity-input');
+            const neededStock = parseInt(row.find('td').eq(7).text());
+
+            if ($(checkbox).is(':checked')) {
+                quantityInput.val(neededStock);
+            } else {
+                quantityInput.val(0);
+            }
+
+            // Update subtotal untuk setiap row
+            updateSubtotal(quantityInput, parseInt(quantityInput.val()));
+        }
+
+        function updateSubtotal(quantityInput, quantity) {
+            const row = $(quantityInput).closest('tr');
+            const price = parseFloat(row.find('td').eq(3).text());
+            const subtotal = quantity * price;
+            row.find('td').eq(6).text(subtotal.toFixed(2));
+        }
+
         function terimaPengadaan() {
+            // Ambil ID pengadaan dari modal
             let idpengadaan = $('#exampleModal').data('idpengadaan');
             let items = [];
 
+            // Loop untuk setiap baris dalam tabel detail pengadaan
             $('#tableDetail tbody tr').each(function() {
-                let idbarang = $(this).find('.quantity-display').data('id');
-                let quantity = parseInt($(this).find('.quantity-display').text());
+                let idbarang = $(this).find('.item-checkbox').data('id'); // Ambil ID barang dari checkbox
+                let quantity = parseInt($(this).find('.quantity-input').val()); // Ambil jumlah dari input quantity
 
-                items.push({
-                    idbarang: idbarang,
-                    quantity: quantity
-                });
+                // Hanya masukkan item jika quantity lebih dari 0
+                if (quantity > 0) {
+                    items.push({
+                        idbarang: idbarang, // ID barang
+                        quantity: quantity // Kuantitas
+                    });
+                }
+                // console.log(idbarang); // Pastikan items terisi dengan benar
             });
 
+
+            // Kirim data ke server menggunakan AJAX
             $.ajax({
                 type: "POST",
                 url: `/pengadaan/terima/${idpengadaan}`,
                 data: {
-                    items: items,
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                    items: items, // Mengirimkan array items
+                    _token: $('meta[name="csrf-token"]').attr('content') // Ambil CSRF token dari meta tag
                 },
                 success: function(response) {
                     Swal.fire({
@@ -221,12 +293,12 @@
                         text: response.message,
                         confirmButtonText: 'OK'
                     });
-                    $('#exampleModal').modal('hide');
-                    location.reload();
+                    $('#exampleModal').modal('hide'); // Tutup modal
+                    location.reload(); // Refresh halaman untuk melihat perubahan
                 },
                 error: function(xhr) {
-                    const errorMessage = xhr.responseJSON && xhr.responseJSON.message ?
-                        xhr.responseJSON.message : 'Terjadi kesalahan saat menyimpan data.';
+                    const errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON
+                        .message : 'Terjadi kesalahan saat menyimpan data.';
                     Swal.fire({
                         icon: 'error',
                         title: 'Terjadi Kesalahan!',
@@ -238,174 +310,10 @@
         }
 
 
-        function detail(id) {
-            $('#exampleModal').data('idpengadaan', id); // Set ID pengadaan ke modal
-            $.ajax({
-                type: "GET",
-                url: `/pengadaan/detailvalidasi/${id}`,
-                dataType: "JSON",
-                success: function(data) {
-                    $('#tableDetail tbody').empty(); // Clear the table before appending new data
 
-                    if (data.detailPengadaan.length > 0) {
-                        let totalSubtotal = 0;
-
-                        // Format currency
-                        const formatIDR = new Intl.NumberFormat('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0
-                        });
-
-                        // Iterate over detailPengadaan
-                        data.detailPengadaan.forEach((item, index) => {
-                            // Find the latest stock for this item from stoktrakhir data
-                            const latestStock = data.stoktrakhir.find(stock => stock.idbarang === item
-                                .idbarang);
-                            const stockValue = latestStock ? latestStock.stock : '-';
-
-                            let row = `
-                        <tr>
-                            <td>${index + 1}</td> <!-- No -->
-                            <td>${item.nama_barang}</td> <!-- Nama Item -->
-                            <td>${formatIDR.format(item.harga_satuan)}</td> <!-- Harga Satuan with IDR formatting -->
-                            <td>${item.nama_satuan}</td> <!-- Satuan -->
-                            <td>
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-decrease">-</button>
-                                    <p class="mx-2 mb-0 quantity-display px-2 py-1 bg-light border rounded" style="min-width: 30px; text-align: center; font-size: 0.9em;" data-stock="${stockValue}" data-id="${item.idbarang}">
-                                        ${item.jumlah}
-                                    </p>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-increase">+</button>
-                                </div>
-                            </td>
-                            <td class="subtotal">${formatIDR.format(item.sub_total)}</td> <!-- Subtotal with IDR formatting -->
-                            <td>${stockValue}</td> <!-- Latest Stock -->
-                            <td>
-                                <a href="#" class="btn btn-info btn-sm" onclick="showStock(${item.idbarang})">Lihat Stok</a> <!-- Actions -->
-                            </td>
-                        </tr>`;
-                            $('#tableDetail tbody').append(row);
-
-                            // Update subtotal sum
-                            totalSubtotal += parseFloat(item.sub_total);
-                        });
-
-                        // Calculate PPN (11% of total subtotal)
-                        const ppn = totalSubtotal * 0.11;
-                        const totalNilai = totalSubtotal + ppn;
-
-                        // Update the Total Nilai and PPN in the modal with formatted values
-                        $('#totalNilai').text(formatIDR.format(totalNilai));
-                        $('#ppn').text(formatIDR.format(ppn));
-
-                        // Show the modal
-                        $('#exampleModal').modal('show');
-
-                        // Bind event listeners for the increase/decrease buttons after rows are added
-                        bindQuantityButtons();
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Data Tidak Ditemukan!',
-                            text: `Tidak ada detail pengadaan yang ditemukan untuk ID pengadaan: ${id}.`,
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                },
-                error: function(xhr) {
-                    const errorMessage = xhr.responseJSON && xhr.responseJSON.error ?
-                        xhr.responseJSON.error : 'Terjadi kesalahan saat mengambil data.';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Terjadi Kesalahan!',
-                        text: errorMessage,
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
-        }
-
-
-        // Function to handle the quantity adjustment buttons
-        function bindQuantityButtons() {
-            $('.btn-increase').off('click').on('click', function() {
-                let quantityDisplay = $(this).siblings('.quantity-display');
-                let stock = parseInt(quantityDisplay.data('stock'));
-                let currentQuantity = parseInt(quantityDisplay.text());
-                let newQuantity = currentQuantity + 1;
-
-                if (newQuantity <= stock) {
-                    quantityDisplay.text(newQuantity);
-                    updateSubtotal(quantityDisplay, newQuantity);
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Stok Tidak Mencukupi',
-                        text: `Jumlah yang diminta melebihi stok tersedia: ${stock}`,
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
-
-            $('.btn-decrease').off('click').on('click', function() {
-                let quantityDisplay = $(this).siblings('.quantity-display');
-                let currentQuantity = parseInt(quantityDisplay.text());
-                let newQuantity = currentQuantity - 1;
-
-                if (newQuantity >= 1) {
-                    quantityDisplay.text(newQuantity);
-                    updateSubtotal(quantityDisplay, newQuantity);
-                }
-            });
-        }
-
-        // Update subtotal for the row based on the new quantity
-        function updateSubtotal(quantityDisplay, newQuantity) {
-            let row = quantityDisplay.closest('tr');
-            let hargaSatuan = parseFloat(row.find('td').eq(2).text().replace(/[^\d]/g, '')); // Extract number
-            let newSubtotal = hargaSatuan * newQuantity;
-
-            // Format and display new subtotal
-            row.find('.subtotal').text(new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(newSubtotal));
-
-            // Recalculate total and ppn
-            recalculateTotals();
-        }
-
-        // Recalculate the overall totals
-        function recalculateTotals() {
-            let totalSubtotal = 0;
-
-            $('#tableDetail .subtotal').each(function() {
-                totalSubtotal += parseFloat($(this).text().replace(/[^\d]/g, ''));
-            });
-
-            const ppn = totalSubtotal * 0.11; // Calculate PPN (11%)
-            const totalNilai = totalSubtotal + ppn; // Total is subtotal + PPN
-
-            // Update Total Nilai and PPN
-            $('#totalNilai').text(new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(totalNilai));
-            $('#ppn').text(new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(ppn));
-        }
-
-        // Function to show stock details for a specific item
-        function showStock(itemId) {
-            // Implement the logic to fetch and display stock details
-            console.log(`Show stock details for item ID: ${itemId}`);
-            // You can add another AJAX call here to fetch stock details based on itemId
+        function hapusItem(id) {
+            // Logika untuk menghapus item
+            alert('Menghapus item dengan id: ' + id);
         }
     </script>
 @endsection

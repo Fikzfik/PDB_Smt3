@@ -37,7 +37,7 @@
                                                         @endforeach
                                                     </tbody>
                                                 </table>
-                                                <a href="{{ route('index.user') }}" class="btn btn-secondary mb-3">Back</a>
+                                                <a href="{{ route('penerimaan.index') }}" class="btn btn-secondary mb-3">Back</a>
                                             </div>
 
                                             <div class="col-md-6">

@@ -99,109 +99,91 @@ class PengadaanController extends Controller
     {
         $items = $request->input('items');
 
+        if (empty($items)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada item yang dipilih.'], 400);
+        }
+
         DB::beginTransaction();
 
         try {
-            // Mengecek ketersediaan stok
-            foreach ($items as $item) {
-                $detail = DB::selectOne(
-                    'SELECT dp.jumlah, ks.stock
-                FROM detail_pengadaan dp
-                JOIN kartu_stok ks ON dp.idbarang = ks.idbarang
-                WHERE dp.idpengadaan = ? AND dp.idbarang = ?
-                ORDER BY ks.create_at DESC
-                LIMIT 1',
-                    [$idpengadaan, $item['idbarang']],
-                );
-
-                if ($item['quantity'] > $detail->stock) {
-                    return response()->json(
-                        [
-                            'status' => 'error',
-                            'message' => 'Stok tidak mencukupi untuk item: ' . $item['idbarang'],
-                        ],
-                        400,
-                    );
-                }
-            }
-
-            // Menambahkan data ke tabel `penerimaan` dan mendapatkan ID terakhir yang dimasukkan
+            // Menambahkan data ke tabel `penerimaan`
             DB::insert('INSERT INTO penerimaan (created_at, status, idpengadaan, iduser) VALUES (?, ?, ?, ?)', [now(), 'A', $idpengadaan, auth()->user()->iduser]);
 
-            // Mendapatkan `idpenerimaan` paling akhir berdasarkan waktu pembuatan
+            // Mendapatkan `idpenerimaan` paling akhir
             $idpenerimaan = DB::selectOne('SELECT idpenerimaan FROM penerimaan ORDER BY created_at DESC LIMIT 1')->idpenerimaan;
 
             foreach ($items as $item) {
                 // Mengambil harga satuan dari tabel `barang`
-                $hargaSatuan = DB::selectOne(
-                    'SELECT harga
-                FROM barang
-                WHERE idbarang = ?',
-                    [$item['idbarang']],
-                )->harga;
+                $barang = DB::selectOne('SELECT harga FROM barang WHERE idbarang = ?', [$item['idbarang']]);
 
+                if (!$barang) {
+                    throw new \Exception('Barang tidak ditemukan untuk idbarang: ' . $item['idbarang']);
+                }
+
+                $hargaSatuan = $barang->harga;
                 $subTotal = $hargaSatuan * $item['quantity'];
 
-                // Mendapatkan stok saat ini dari `kartu_stok`
-                $currentStock = DB::selectOne(
-                    'SELECT stock
-                FROM kartu_stok
-                WHERE idbarang = ?
-                ORDER BY create_at DESC
-                LIMIT 1',
-                    [$item['idbarang']],
-                )->stock;
-
                 // Menambahkan data ke `detail_penerimaan`
-                DB::insert(
-                    'INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang)
-                VALUES (?, ?, ?, ?, ?)',
-                    [$item['quantity'], $hargaSatuan, $subTotal, $idpenerimaan, $item['idbarang']],
-                );
+                DB::insert('INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang) VALUES (?, ?, ?, ?, ?)', [$item['quantity'], $hargaSatuan, $subTotal, $idpenerimaan, $item['idbarang']]);
 
-                // Menambahkan data ke `kartu_stok`
-                DB::insert(
-                    'INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi)
-                VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    ['K', 0, $item['quantity'], $currentStock - $item['quantity'], $item['idbarang'], now(), $idpengadaan],
-                );
+                // Mengambil stok saat ini dari `kartu_stok`
+                $result = DB::selectOne('SELECT stock FROM kartu_stok WHERE idbarang = ? ORDER BY create_at DESC LIMIT 1', [$item['idbarang']]);
+                $currentStock = $result ? $result->stock : 0;
+
+                // Menambahkan stok baru ke `kartu_stok`
+                DB::insert('INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi) VALUES (?, ?, ?, ?, ?, ?, ?)', ['1', $item['quantity'], 0, $currentStock + $item['quantity'], $item['idbarang'], now(), $idpengadaan]);
             }
 
-            // Mengupdate status pengadaan di tabel `pengadaan`
-            DB::update(
-                'UPDATE pengadaan
-            SET status = ?
-            WHERE idpengadaan = ?',
-                ['B', $idpengadaan],
-            );
+            // Mengecek jika semua jumlah di `detail_pengadaan` - `detail_penerimaan` = 0
+            $isAllZero =
+                DB::selectOne(
+                    '
+            SELECT COUNT(*) AS total
+            FROM detail_pengadaan dp
+            LEFT JOIN (
+                SELECT idbarang, SUM(jumlah_terima) AS total_terima
+                FROM detail_penerimaan
+                WHERE idpenerimaan = ?
+                GROUP BY idbarang
+            ) AS dpn ON dp.idbarang = dpn.idbarang
+            WHERE dp.idpengadaan = ? AND (dp.jumlah - COALESCE(dpn.total_terima, 0)) > 0
+        ',
+                    [$idpenerimaan, $idpengadaan],
+                )->total == 0;
+
+            if ($isAllZero) {
+                DB::update('UPDATE pengadaan SET status = ? WHERE idpengadaan = ?', ['B', $idpengadaan]);
+            }
 
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Pengadaan berhasil diterima, stok diperbarui, dan status pengadaan diubah menjadi "B"',
+                'message' => 'Pengadaan berhasil diterima dan stok diperbarui.' . ($isAllZero ? ' Semua detail terpenuhi.' : ''),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(
-                [
-                    'status' => 'error',
-                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
-                ],
-                500,
-            );
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
 
     public function detail($id)
     {
         try {
-            // Mengambil detail pengadaan dengan raw SQL
+            // Mengambil detail pengadaan dengan stok yang dibutuhkan
             $detailPengadaan = DB::select(
-                'SELECT dp.iddetail_pengadaan, dp.idpengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, p.status,p.idpengadaan
+                'SELECT dp.iddetail_pengadaan, dp.idpengadaan, b.nama, dp.harga_satuan, dp.jumlah, b.idbarang,
+                    dp.sub_total, p.status, p.idpengadaan, s.nama_satuan, dp.jumlah AS jumlah_pengadaan,
+                    COALESCE(dp.jumlah - (
+                        SELECT SUM(dp2.jumlah_terima)
+                        FROM detail_penerimaan dp2
+                        JOIN penerimaan p2 ON dp2.idpenerimaan = p2.idpenerimaan
+                        WHERE dp2.idbarang = dp.idbarang AND p2.idpengadaan = dp.idpengadaan
+                    ), dp.jumlah) AS stok_yang_dibutuhkan
             FROM detail_pengadaan dp
             JOIN barang b ON dp.idbarang = b.idbarang
-            JOIN pengadaan p on p.idpengadaan = dp.idpengadaan
+            JOIN satuan s ON s.idsatuan = b.idsatuan
+            JOIN pengadaan p ON p.idpengadaan = dp.idpengadaan
             WHERE dp.idpengadaan = ?',
                 [$id],
             );
@@ -217,12 +199,13 @@ class PengadaanController extends Controller
             return response()->json(
                 [
                     'message' => 'Terjadi kesalahan saat mengambil detail pengadaan.',
-                    'error' => $e->getMessage(), // Menyertakan pesan kesalahan
+                    'error' => $e->getMessage(),
                 ],
                 500,
             );
         }
     }
+
     public function detailvalidasi($id)
     {
         try {

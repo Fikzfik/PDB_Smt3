@@ -15,7 +15,6 @@ use App\Http\Controllers\ReturnController;
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin', [ViewController::class, 'dashboard'])->name('index.admin');
-    Route::get('/', [ViewController::class, 'dashboarduser'])->name('index.user');
 
     Route::get('/satuan', [ViewController::class, 'satuan'])->name('satuanBarang');
     Route::post('/satuan', [SatuanController::class, 'create'])->name('satuan.create');
@@ -42,12 +41,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/adduser', [ViewController::class, 'adduser'])->name('adduser');
     Route::post('/users/store', [UserController::class, 'create'])->name('users.store');
     Route::delete('/users/destroy/{id}', [UserController::class, 'delete'])->name('users.destroy');
+    Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/update/{id}', [UserController::class, 'update'])->name('users.update');
 
     Route::get('/addvendor', [ViewController::class, 'addvendor'])->name('addvendor');
     Route::post('/vendor/create', [VendorController::class, 'create'])->name('vendor.create');
     Route::delete('/vendor/delete/{id}', [VendorController::class, 'delete'])->name('vendor.delete');
 
-    Route::get('/pengadaan', [PengadaanController::class, 'index'])->name('pengadaan.index');
+    Route::get('/pengadaan', [ViewController::class, 'dashboarduser'])->name('pengadaan');
     Route::get('/pengadaan/create', [PengadaanController::class, 'create'])->name('pengadaan.create');
     Route::get('/pengadaan/caribarang', [PengadaanController::class, 'caribarang'])->name('pengadaan.caribarang');
     Route::post('/pengadaan/store', [PengadaanController::class, 'store'])->name('pengadaan.store');
@@ -55,9 +56,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/pengadaan/detail/{id}', [PengadaanController::class, 'detail'])->name('pengadaan.detail');
     Route::get('/pengadaan/detailvalidasi/{id}', [PengadaanController::class, 'detailvalidasi'])->name('pengadaan.detailvalidasi');
     Route::post('/pengadaan/terima/{id}', [PengadaanController::class, 'terimaPengadaan']);
-    
+
     Route::get('/penerimaan', [ViewController::class, 'penerimaan'])->name('penerimaan.index');
-    Route::get('/penerimaan/comparison/{id}',[PenerimaanController::class,'viewPenerimaanComparison'])->name('penerimaan.comparison');
+    Route::get('/penerimaan/comparison/{id}', [PenerimaanController::class, 'viewPenerimaanComparison'])->name('penerimaan.comparison');
+    Route::get('/penerimaan/detail/{id}', [PenerimaanController::class, 'detailPenerimaan']);
+    Route::get('/penerimaan/return-list/{idPengadaan}', [PenerimaanController::class, 'showReturnList'])->name('penerimaan.list');
 
     Route::post('/return-items', [ReturnController::class, 'return'])->name('returnItems');
 

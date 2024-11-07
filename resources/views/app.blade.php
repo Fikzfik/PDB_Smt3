@@ -2,40 +2,40 @@
 <html lang="en" itemscope itemtype="http://schema.org/WebPage">
 
 <head>
-   @include('layout.head')
+    @include('layout.head')
 </head>
 
 <body class="index-page bg-gray-200">
     <!-- Navbar -->
     @include('layout.navbar')
+
     @if (isset($showHeader) && $showHeader)
         @include('layout.header')
         @yield('field-content')
     @else
         @yield('field-content')
     @endif
+
     @yield('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {{-- @include('layout.footer') --}}
-    <!--   Core JS Files   -->
-    <script src="./assets/js/core/popper.min.js" type="text/javascript"></script>
-    <script src="./assets/js/core/bootstrap.min.js" type="text/javascript"></script>
-    <script src="./assets/js/plugins/perfect-scrollbar.min.js"></script>
-    <!--  Plugin for TypedJS, full documentation here: https://github.com/inorganik/CountUp.js -->
-    <script src="./assets/js/plugins/countup.min.js"></script>
-    <script src="./assets/js/plugins/choices.min.js"></script>
-    <script src="./assets/js/plugins/prism.min.js"></script>
-    <script src="./assets/js/plugins/highlight.min.js"></script>
-    <!--  Plugin for Parallax, full documentation here: https://github.com/dixonandmoe/rellax -->
-    <script src="./assets/js/plugins/rellax.min.js"></script>
-    <!--  Plugin for TiltJS, full documentation here: https://gijsroge.github.io/tilt.js/ -->
-    <script src="./assets/js/plugins/tilt.min.js"></script>
-    <!--  Plugin for Selectpicker - ChoicesJS, full documentation here: https://github.com/jshjohnson/Choices -->
-    <script src="./assets/js/plugins/choices.min.js"></script>
-    <!-- Control Center for Material UI Kit: parallax effects, scripts for the example pages etc -->
-    <!--  Google Maps Plugin    -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTTfWur0PDbZWPr7Pmq8K3jiDp0_xUziI"></script>
-    <script src="./assets/js/material-kit.min.js?v=3.0.4" type="text/javascript"></script>
+
+    @include('layout.footer')
+  
+    <!-- Core JS Files -->
+    <script src="{{ asset('assets/js/core/popper.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/js/core/bootstrap.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/countup.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/prism.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/highlight.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/rellax.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/tilt.min.js') }}"></script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}"></script>
+    
+    <script src="{{ asset('assets/js/material-kit.min.js?v=3.0.4') }}" type="text/javascript"></script>
+
     <script type="text/javascript">
         if (document.getElementById('state1')) {
             const countUp = new CountUp('state1', document.getElementById("state1").getAttribute("countTo"));
@@ -45,6 +45,7 @@
                 console.error(countUp.error);
             }
         }
+
         if (document.getElementById('state2')) {
             const countUp1 = new CountUp('state2', document.getElementById("state2").getAttribute("countTo"));
             if (!countUp1.error) {
@@ -53,13 +54,14 @@
                 console.error(countUp1.error);
             }
         }
+
         if (document.getElementById('state3')) {
             const countUp2 = new CountUp('state3', document.getElementById("state3").getAttribute("countTo"));
             if (!countUp2.error) {
                 countUp2.start();
             } else {
                 console.error(countUp2.error);
-            };
+            }
         }
     </script>
 </body>

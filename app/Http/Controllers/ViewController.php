@@ -10,32 +10,32 @@ use App\Models\User;
 
 class ViewController extends Controller
 {
-    public function dashboard()
-    {
-        $validUser = Auth::user();
+        public function dashboard()
+        {
+            $validUser = Auth::user();
 
-        // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
-        $detail = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
-               dp.iddetail_pengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-            JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
-            JOIN barang b ON dp.idbarang = b.idbarang
-            JOIN satuan s ON b.idsatuan = s.idsatuan
-    ');
-        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status,p.timestamp
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-            WHERE p.status = "A"
+            // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
+            $detail = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
+                dp.iddetail_pengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan
+                FROM pengadaan p
+                JOIN users u ON p.users_iduser = u.iduser
+                JOIN vendor v ON p.vendor_idvendor = v.idvendor
+                JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
+                JOIN barang b ON dp.idbarang = b.idbarang
+                JOIN satuan s ON b.idsatuan = s.idsatuan
         ');
-        // Count pending procurements
-        $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
-        $jumlahPending = $jumlahPending[0]->total;
+            $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status,p.timestamp
+                FROM pengadaan p
+                JOIN users u ON p.users_iduser = u.iduser
+                JOIN vendor v ON p.vendor_idvendor = v.idvendor
+                WHERE p.status = "A"
+            ');
+            // Count pending procurements
+            $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
+            $jumlahPending = $jumlahPending[0]->total;
 
-        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'detail'));
-    }
+            return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'detail'));
+        }
     public function dashboarduser()
     {
         $validUser = Auth::user();
@@ -116,12 +116,16 @@ class ViewController extends Controller
     public function penerimaan()
     {
         $validUser = Auth::user();
-        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-        ');
-        // @dd($pengadaans);
-        return view('penerimaan.index', compact('validUser', 'pengadaans'));
+        $penerimaans = DB::select("SELECT p.idpengadaan,
+           MAX(p.idpenerimaan) AS idpenerimaan,
+           MAX(p.created_at) AS created_at,
+           u.username,
+           p.status
+            FROM penerimaan p
+            JOIN users u ON p.iduser = u.iduser
+            GROUP BY p.idpengadaan, u.username, p.status
+        ");
+
+        return view('penerimaan.index', compact('validUser', 'penerimaans'));
     }
 }
