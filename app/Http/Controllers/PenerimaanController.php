@@ -68,7 +68,7 @@ class PenerimaanController extends Controller
                 ->with('error', 'Error fetching data: ' . $e->getMessage());
         }
     }
-   public function showReturnList($idPengadaan)
+    public function showReturnList($idPengadaan)
 {
     // Mengambil semua penerimaan berdasarkan idPengadaan
     $penerimaanList = DB::select(
@@ -81,6 +81,7 @@ class PenerimaanController extends Controller
     // Mengambil detail penerimaan untuk setiap penerimaan
     $detailPenerimaan = [];
     foreach ($penerimaanList as $penerimaan) {
+        // Ambil detail penerimaan untuk setiap penerimaan
         $detailPenerimaan[$penerimaan->idpenerimaan] = DB::select(
             "SELECT pd.iddetail_penerimaan, b.nama, pd.jumlah_terima,
             pd.harga_satuan_terima, pd.sub_total_terima
@@ -89,13 +90,28 @@ class PenerimaanController extends Controller
             WHERE pd.idpenerimaan = ?",
             [$penerimaan->idpenerimaan]
         );
+
+        // Untuk setiap detail penerimaan, kita ambil detail retur
+        foreach ($detailPenerimaan[$penerimaan->idpenerimaan] as $key => $detail) {
+            $returnDetails = DB::select(
+                "SELECT SUM(dr.jumlah) AS total_return
+                FROM detail_retur dr
+                WHERE dr.iddetail_penerimaan = ?",
+                [$detail->iddetail_penerimaan]
+            );
+
+            // Jika ada retur, kurangi sub_total_terima dengan total_return
+            $totalReturn = $returnDetails[0]->total_return ?? 0;
+            $detailPenerimaan[$penerimaan->idpenerimaan][$key]->sub_total_terima -= $totalReturn;
+        }
     }
-    // @dd($penerimaanList,$detailPenerimaan,$idPengadaan);
+
     return view('penerimaan.list', [
         'penerimaanList' => $penerimaanList,
         'detailPenerimaan' => $detailPenerimaan,
         'idPengadaan' => $idPengadaan,
     ]);
 }
+
  
 }

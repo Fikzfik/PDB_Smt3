@@ -17,30 +17,31 @@
                                 </div>
                                 <hr class="vertical dark">
                             </div>
-
-                            <!-- Pengadaan Return -->
-                            <div class="col-md-4 position-relative">
-                                <div class="p-3 text-center">
-                                    <h1 class="text-gradient text-primary">
-                                        <span id="state2" countTo="20">0</span>+
-                                    </h1>
-                                    <h5 class="mt-3">Jumlah Pengadaan Yang Direturn</h5>
-                                    <p class="text-sm font-weight-normal">Total pengadaan yang dikembalikan.</p>
-                                </div>
-                                <hr class="vertical dark">
-                            </div>
-
+                        
                             <!-- Pengadaan Selesai -->
                             <div class="col-md-4 position-relative">
                                 <div class="p-3 text-center">
                                     <h1 class="text-gradient text-primary">
-                                        <span id="state3" countTo="10">0</span>
+                                        <span id="state2" countTo="{{ $jumlahSucces }}">0</span>+
                                     </h1>
                                     <h5 class="mt-3">Jumlah Pengadaan Yang Selesai</h5>
                                     <p class="text-sm font-weight-normal">Total pengadaan yang sudah selesai diproses.</p>
                                 </div>
                             </div>
+                        
+                            <!-- Pengadaan Return -->
+                            <div class="col-md-4 position-relative">
+                                <div class="p-3 text-center">
+                                    <h1 class="text-gradient text-primary">
+                                        <span id="state3" countTo="{{ $jumlahReturn }}">0</span>+
+                                    </h1>
+                                    <h5 class="mt-3">Jumlah Penerimaan Yang Direturn</h5>
+                                    <p class="text-sm font-weight-normal">Total penerimaan yang dikembalikan.</p>
+                                </div>
+                                <hr class="vertical dark">
+                            </div>
                         </div>
+                        
                     </div>
                 </div>
             </div>
@@ -167,7 +168,7 @@
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $('#checkAll').on('change', function() {
             const isChecked = $(this).is(':checked');

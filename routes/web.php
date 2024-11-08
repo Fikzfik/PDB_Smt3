@@ -63,6 +63,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/penerimaan/return-list/{idPengadaan}', [PenerimaanController::class, 'showReturnList'])->name('penerimaan.list');
 
     Route::post('/return-items', [ReturnController::class, 'return'])->name('returnItems');
+    Route::post('/return-penerimaan', [ReturnController::class, 'returnPenerimaan']);
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });

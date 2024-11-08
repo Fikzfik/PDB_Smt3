@@ -39,34 +39,37 @@
                                                                 </button>
                                                             </td>
                                                         </tr>
-                                                        <tr id="detail-{{ $penerimaan->idpenerimaan }}" class="collapse detail-row">
+                                                        <tr id="detail-{{ $penerimaan->idpenerimaan }}"
+                                                            class="collapse detail-row">
                                                             <td colspan="3">
                                                                 <table class="table table-bordered mt-2">
                                                                     <thead>
                                                                         <tr>
+                                                                            <th>Select</th>
                                                                             <th>ID Detail</th>
                                                                             <th>Nama Barang</th>
                                                                             <th>Jumlah Diterima</th>
                                                                             <th>Harga Satuan</th>
                                                                             <th>Subtotal</th>
-                                                                            <th>Aksi</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         @foreach ($detailPenerimaan[$penerimaan->idpenerimaan] ?? [] as $detail)
                                                                             <tr>
+                                                                                <td>
+                                                                                    <input type="checkbox"
+                                                                                        class="return-checkbox"
+                                                                                        data-id="{{ $detail->iddetail_penerimaan }}"
+                                                                                        data-stock="{{ $detail->jumlah_terima }}"
+                                                                                        data-name="{{ $detail->nama }}"
+                                                                                        data-idpenerimaan="{{ $penerimaan->idpenerimaan }}">
+                                                                                </td>
                                                                                 <td>{{ $detail->iddetail_penerimaan }}</td>
                                                                                 <td>{{ $detail->nama }}</td>
                                                                                 <td>{{ $detail->jumlah_terima }}</td>
                                                                                 <td>{{ number_format($detail->harga_satuan_terima, 0, ',', '.') }}
                                                                                 </td>
                                                                                 <td>{{ number_format($detail->sub_total_terima, 0, ',', '.') }}
-                                                                                </td>
-                                                                                <td>
-                                                                                    <button class="btn btn-danger"
-                                                                                        onclick="showReturnModal({{ $detail->iddetail_penerimaan }}, {{ $detail->jumlah_terima }}, '{{ $detail->nama }}')">
-                                                                                        Return
-                                                                                    </button>
                                                                                 </td>
                                                                             </tr>
                                                                         @endforeach
@@ -80,6 +83,8 @@
 
                                             <a href="{{ url()->previous() }}" class="btn btn-secondary mt-3">Kembali ke
                                                 Daftar Penerimaan</a>
+                                            <button class="btn btn-danger mt-3" onclick="showReturnModal()">Return Barang
+                                                Terpilih</button>
                                         </div>
                                     </div>
                                 </div>
@@ -93,23 +98,14 @@
 
     <!-- Modal untuk Return Item -->
     <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="returnModalLabel">Pengembalian Barang</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p>Nama Barang: <span id="itemName"></span></p>
-                    <p>Stok Tersedia: <span id="availableStock"></span></p>
-                    <div class="mb-3">
-                        <label for="returnQuantity" class="form-label">Jumlah yang ingin dikembalikan:</label>
-                        <input type="number" class="form-control" id="returnQuantity" min="1" max="5">
-                    </div>
-                    <div class="mb-3">
-                        <label for="returnReason" class="form-label">Alasan Pengembalian:</label>
-                        <textarea class="form-control" id="returnReason" rows="3"></textarea>
-                    </div>
+                <div class="modal-body" id="returnItemsList">
+                    <!-- Konten dinamis untuk setiap barang yang dipilih akan diisi di sini -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -118,6 +114,8 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <style>
         .collapse {
             display: none;
@@ -140,30 +138,126 @@
     <script>
         function toggleDetail(id) {
             var detailRow = $('#detail-' + id);
-            if (detailRow.hasClass('show')) {
-                detailRow.removeClass('show');
-            } else {
-                detailRow.addClass('show');
-            }
+            detailRow.toggleClass('show');
         }
 
-        function showReturnModal(id, stock, name) {
-            $('#itemName').text(name);
-            $('#availableStock').text(stock);
-            $('#returnModal').modal('show');
+        // Menampilkan modal return dengan beberapa form untuk barang yang dipilih
+        function showReturnModal() {
+            let selectedItems = [];
+            $('.return-checkbox:checked').each(function() {
+                selectedItems.push({
+                    id: $(this).data('id'),
+                    name: $(this).data('name'),
+                    stock: $(this).data('stock'),
+                    idPenerimaan: $(this).data('idpenerimaan')
+                });
+            });
 
-            $('#confirmReturnBtn').off('click').on('click', function() {
-                var returnQuantity = $('#returnQuantity').val();
-                if (returnQuantity > stock) {
-                    Swal.fire('Error', 'Jumlah yang ingin dikembalikan tidak boleh lebih dari stok tersedia', 'error');
-                } else if (returnQuantity <= 0) {
-                    Swal.fire('Error', 'Jumlah yang ingin dikembalikan harus lebih besar dari 0', 'error');
-                } else {
-                    Swal.fire('Success', 'Pengembalian berhasil dilakukan', 'success');
-                    $('#returnModal').modal('hide');
-                    // Kirim request ke server untuk memproses pengembalian
+            if (selectedItems.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Tidak ada barang yang dipilih',
+                    text: 'Pilih minimal satu barang untuk direturn.'
+                });
+                return;
+            }
+
+            // Hapus konten modal sebelumnya
+            $('#returnItemsList').empty();
+
+            // Tambahkan setiap barang yang dipilih ke dalam modal
+            selectedItems.forEach(item => {
+                $('#returnItemsList').append(`
+                    <div class="return-item" data-idpenerimaan="${item.idPenerimaan}">
+                        <p>Nama Barang: ${item.name}</p>
+                        <p>Stok Tersedia: ${item.stock}</p>
+                        <div class="mb-3">
+                            <label for="returnQuantity-${item.id}" class="form-label">Jumlah yang ingin dikembalikan:</label>
+                            <input type="number" class="form-control return-quantity" id="returnQuantity-${item.id}" data-id="${item.id}" min="1" max="${item.stock}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="returnReason-${item.id}" class="form-label">Alasan Pengembalian:</label>
+                            <textarea class="form-control return-reason" id="returnReason-${item.id}" rows="2"></textarea>
+                        </div>
+                        <hr>
+                    </div>
+                `);
+            });
+
+            $('#returnModal').modal('show');
+        }
+
+        $('#confirmReturnBtn').click(function() {
+            const itemsData = [];
+            let hasEmptyFields = false;
+
+            $('.return-item').each(function() {
+                const idPenerimaan = $(this).data('idpenerimaan');
+                const quantityInput = $(this).find('.return-quantity');
+                const id = quantityInput.data('id');
+                const quantity = quantityInput.val();
+                const reason = $(`#returnReason-${id}`).val();
+
+                // Validasi setiap field apakah terisi atau tidak
+                if (!quantity || !reason) {
+                    hasEmptyFields = true;
+                    return false; // Keluar dari each jika ada field kosong
+                }
+                itemsData.push({
+                    idPenerimaan: idPenerimaan,
+                    idDetailPenerimaan: id,
+                    jumlahReturn: quantity,
+                    alasan: reason
+                });
+                console.log(itemsData);
+            });
+
+            if (hasEmptyFields) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Data Tidak Lengkap',
+                    text: 'Isi jumlah dan alasan untuk setiap barang yang ingin dikembalikan.'
+                });
+                return;
+            }
+
+            $.ajax({
+                url: '/return-penerimaan',
+                type: 'POST',
+                data: {
+                    items: itemsData,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pengembalian Berhasil',
+                            text: 'Barang telah berhasil dikembalikan.'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Pengembalian Gagal',
+                            text: 'Terjadi kesalahan saat mengembalikan barang.'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    let errorMessage = 'Terjadi kesalahan saat memproses pengembalian barang.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: errorMessage
+                    });
+                    console.error('Error:', error);
                 }
             });
-        }
+        });
     </script>
 @endsection

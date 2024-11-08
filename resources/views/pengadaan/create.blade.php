@@ -198,7 +198,7 @@
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -431,22 +431,24 @@
                         barangPilih: JSON.stringify(barangPilih)
                     },
                     success: function(response) {
+                        console.log(response); // Cek response dari server
                         if (response.message === 'success') {
                             Swal.fire("SUCCESS!", "Data Berhasil Disimpan", "success").then(
                                 () => {
                                     window.location.href = '/pengadaan/create';
                                 });
+                        } else {
+                            console.log('Response tidak sesuai');
                         }
                     },
                     error: function(error) {
-                        // Tampilkan pesan error yang diterima dari server, serta data yang dikirim
+                        console.log(error); // Cek data error dari server
                         Swal.fire({
                             title: "ERROR!",
-                            text: error.responseJSON.error + "\nData yang dikirim: " +
-                                JSON.stringify(error.responseJSON.data),
+                            text: error.responseJSON.error + "\nData yang dikirim: " + JSON.stringify(error.responseJSON.data),
                             icon: "error"
                         });
-                    }
+                    }   
                 });
             });
         });

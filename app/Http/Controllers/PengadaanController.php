@@ -134,7 +134,7 @@ class PengadaanController extends Controller
                 DB::insert('INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi) VALUES (?, ?, ?, ?, ?, ?, ?)', ['1', $item['quantity'], 0, $currentStock + $item['quantity'], $item['idbarang'], now(), $idpengadaan]);
             }
 
-            // Mengecek jika semua jumlah di `detail_pengadaan` - `detail_penerimaan` = 0
+            // Mengecek jika semua jumlah di `detail_pengadaan` terpenuhi oleh `detail_penerimaan`
             $isAllZero =
                 DB::selectOne(
                     '
@@ -143,12 +143,13 @@ class PengadaanController extends Controller
             LEFT JOIN (
                 SELECT idbarang, SUM(jumlah_terima) AS total_terima
                 FROM detail_penerimaan
-                WHERE idpenerimaan = ?
+                JOIN penerimaan ON detail_penerimaan.idpenerimaan = penerimaan.idpenerimaan
+                WHERE penerimaan.idpengadaan = ?
                 GROUP BY idbarang
             ) AS dpn ON dp.idbarang = dpn.idbarang
             WHERE dp.idpengadaan = ? AND (dp.jumlah - COALESCE(dpn.total_terima, 0)) > 0
-        ',
-                    [$idpenerimaan, $idpengadaan],
+            ',
+                    [$idpengadaan, $idpengadaan],
                 )->total == 0;
 
             if ($isAllZero) {

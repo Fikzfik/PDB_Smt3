@@ -5,99 +5,76 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Carbon\Carbon;
 
 class ReturnController extends Controller
 {
-    public function return(Request $request)
+    public function returnPenerimaan(Request $request)
     {
-        $selectedItems = $request->input('selectedItems');
-        $idPenerimaan = $request->input('idpenerimaan');
+        $itemsData = $request->input('items');
+
+        if (empty($itemsData)) {
+            return response()->json(['status' => 'error', 'message' => 'Data tidak lengkap atau kosong.'], 400);
+        }
 
         DB::beginTransaction();
 
         try {
-            if (!$selectedItems) {
-                return response()->json(['status' => 'error', 'message' => 'No items selected for return.']);
-            }
+            // Log untuk memastikan itemsData berisi data yang diharapkan
+            Log::info('ItemsData:', ['items' => $itemsData]);
 
-            // Periksa apakah `idpenerimaan` ada di tabel `penerimaan`
-            $penerimaanExists = DB::selectOne('SELECT COUNT(*) as count FROM penerimaan WHERE idpenerimaan = ?', [$idPenerimaan]);
+            // Kelompokkan barang berdasarkan `idPenerimaan`
+            $itemsGroupedByPenerimaan = collect($itemsData)->groupBy('idPenerimaan');
 
-            if ($penerimaanExists->count == 0) {
-                return response()->json(['status' => 'error', 'message' => 'Invalid penerimaan ID.']);
-            }
+            foreach ($itemsGroupedByPenerimaan as $idPenerimaan => $items) {
+                // Validasi apakah `idPenerimaan` valid
+                if (empty($idPenerimaan)) {
+                    throw new \Exception('ID penerimaan tidak valid atau kosong untuk salah satu item.');
+                }
 
-            // Tambahkan data ke tabel `returr` dan dapatkan ID retur yang baru dimasukkan
-            DB::insert('INSERT INTO returr (idpenerimaan, iduser, created_at) VALUES (?, ?, ?)', [$idPenerimaan, auth()->id(), now()]);
-            $returId = DB::selectOne('SELECT LAST_INSERT_ID() as id')->id;
+                // Buat record retur baru untuk setiap kelompok `idPenerimaan`
+                DB::insert('INSERT INTO returr (created_at, idpenerimaan, iduser) VALUES (?, ?, ?)', [now(), $idPenerimaan, auth()->user()->iduser]);
 
-            foreach ($selectedItems as $itemId) {
-                // Ambil detail penerimaan untuk item yang dikembalikan
-                $detailPenerimaan = DB::selectOne(
-                    'SELECT idbarang, jumlah_terima
-                FROM detail_penerimaan
-                WHERE iddetail_penerimaan = ?',
-                    [$itemId],
-                );
+                // Ambil `idretur` yang baru saja dibuat
+                $idRetur = DB::getPdo()->lastInsertId();
 
-                if ($detailPenerimaan) {
-                    // Dapatkan stok saat ini dari `kartu_stok`
-                    $currentStock = DB::selectOne(
-                        'SELECT stock
-                    FROM kartu_stok
-                    WHERE idbarang = ?
-                    ORDER BY create_at DESC
-                    LIMIT 1',
-                        [$detailPenerimaan->idbarang],
-                    )->stock;
+                foreach ($items as $item) {
+                    $idDetailPenerimaan = $item['idDetailPenerimaan'];
+                    $jumlahReturn = (int) $item['jumlahReturn'];
+                    $alasan = $item['alasan'];
 
-                    // Tambahkan data ke `kartu_stok` untuk menambah stok kembali (jenis transaksi "M")
-                    DB::insert(
-                        'INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, create_at, idtransaksi, idbarang)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        ['M', $detailPenerimaan->jumlah_terima, 0, $currentStock + $detailPenerimaan->jumlah_terima, now(), $returId, $detailPenerimaan->idbarang],
-                    );
+                    // Validasi `detail_penerimaan`
+                    $detailPenerimaan = DB::selectOne('SELECT * FROM detail_penerimaan WHERE iddetail_penerimaan = ?', [$idDetailPenerimaan]);
 
-                    // Tambahkan data ke `detail_retur`
-                    DB::insert(
-                        'INSERT INTO detail_retur (jumlah, alasan, idretur, iddetail_penerimaan)
-                    VALUES (?, ?, ?, ?)',
-                        [$detailPenerimaan->jumlah_terima, $request->input('alasan')[$itemId] ?? 'No reason provided', $returId, $itemId],
-                    );
+                    if (!$detailPenerimaan) {
+                        throw new \Exception('Detail penerimaan tidak ditemukan untuk ID: ' . $idDetailPenerimaan);
+                    }
 
-                    // Hapus data di `detail_retur` yang terkait dengan `iddetail_penerimaan`
-                    DB::delete('DELETE FROM detail_retur WHERE iddetail_penerimaan = ?', [$itemId]);
+                    // Validasi apakah jumlah return tidak melebihi jumlah yang diterima
+                    if ($jumlahReturn > $detailPenerimaan->jumlah_terima) {
+                        return response()->json(['status' => 'error', 'message' => 'Jumlah return melebihi jumlah yang diterima.'], 400);
+                    }
 
-                    // Hapus `detail_penerimaan` yang sudah di-retur
-                    DB::delete('DELETE FROM detail_penerimaan WHERE iddetail_penerimaan = ?', [$itemId]);
+                    // Masukkan data ke tabel `detail_retur`
+                    DB::insert('INSERT INTO detail_retur (jumlah, alasan, idretur, iddetail_penerimaan) VALUES (?, ?, ?, ?)', [$jumlahReturn, $alasan, $idRetur, $idDetailPenerimaan]);
+
+                    // Ambil stok saat ini dari `kartu_stok`
+                    $currentStockQuery = DB::selectOne('SELECT stock FROM kartu_stok WHERE idbarang = ? ORDER BY create_at DESC LIMIT 1', [$detailPenerimaan->idbarang]);
+                    $currentStock = $currentStockQuery->stock ?? 0;
+
+                    // Perbarui stok di `kartu_stok`
+                    DB::insert('INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi) VALUES (?, ?, ?, ?, ?, ?, ?)', ['2', 0, $jumlahReturn, $currentStock - $jumlahReturn, $detailPenerimaan->idbarang, now(), $idRetur]);
                 }
             }
 
-            // Periksa apakah masih ada item di `detail_penerimaan` untuk penerimaan ini
-            $remainingDetails = DB::selectOne(
-                'SELECT COUNT(*) as count
-            FROM detail_penerimaan
-            WHERE idpenerimaan = ?',
-                [$idPenerimaan],
-            );
-
-            // Jika tidak ada item yang tersisa, ubah status `penerimaan` menjadi "B"
-            if ($remainingDetails->count == 0) {
-                DB::update(
-                    'UPDATE penerimaan
-                SET status = "B"
-                WHERE idpenerimaan = ?',
-                    [$idPenerimaan],
-                );
-            }
-
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Items successfully returned, stock updated, and status updated if no items remain.']);
+            return response()->json(['status' => 'success', 'message' => 'Barang berhasil dikembalikan dan stok diperbarui.']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+            Log::error('Terjadi kesalahan saat memproses retur:', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
 }
