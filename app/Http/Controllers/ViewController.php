@@ -41,7 +41,7 @@ class ViewController extends Controller
         $jumlahReturn = DB::select('SELECT COUNT(*) as total FROM returr');
         $jumlahReturn = $jumlahReturn[0]->total;
 
-        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'jumlahReturn', 'detail','jumlahSucces'));
+        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'jumlahReturn', 'detail', 'jumlahSucces'));
     }
 
     public function dashboarduser()
@@ -78,6 +78,12 @@ class ViewController extends Controller
         $satuan = DB::select('SELECT * FROM Satuan');
         // @dd($barang);
         return view('barang.index', compact('validUser', 'barang', 'satuan'));
+    }
+    public function margin()
+    {
+        $validUser = Auth::user();
+        $margin = DB::select('SELECT * FROM margin_penjualan');
+        return view('margin.index', compact('validUser', 'margin'));
     }
     public function kartustok()
     {
@@ -135,5 +141,16 @@ class ViewController extends Controller
         ");
 
         return view('penerimaan.index', compact('validUser', 'penerimaans'));
+    }
+    public function penjualan()
+    {
+        $validUser = Auth::user();
+        $penjualans = DB::select('SELECT pj.idpenjualan, u.username, pj.subtotal_nilai, pj.total_nilai, pj.ppn, pj.created_at, m.persen AS margin
+        FROM penjualan pj
+        JOIN users u ON pj.iduser = u.iduser
+        LEFT JOIN margin_penjualan m ON pj.idmargin_penjualan = m.idmargin_penjualan
+    ');
+
+        return view('penjualan.index', compact('validUser', 'penjualans'));
     }
 }

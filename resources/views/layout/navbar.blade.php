@@ -65,6 +65,9 @@
                                                 <a href="{{ route('addrole') }}" class="dropdown-item border-radius-md">
                                                     <span>Add Role</span>
                                                 </a>
+                                                <a href="{{ route('margin') }}" class="dropdown-item border-radius-md">
+                                                    <span>Margin Penjualan</span>
+                                                </a>
                                             </div>
 
                                             <div class="d-lg-none">
@@ -125,11 +128,11 @@
                                                     </a>
                                                     <div class="dropdown-menu mt-0 py-3 px-2 mt-3">
                                                         <a class="dropdown-item ps-3 border-radius-md mb-1"
-                                                        href="{{ route('pengadaan.create') }}">
-                                                        Tambah Pengadaan
-                                                    </a>
-                                                    <a class="dropdown-item ps-3 border-radius-md mb-1"
-                                                    href="{{ route('pengadaan') }}">
+                                                            href="{{ route('pengadaan.create') }}">
+                                                            Tambah Pengadaan
+                                                        </a>
+                                                        <a class="dropdown-item ps-3 border-radius-md mb-1"
+                                                            href="{{ route('pengadaan') }}">
                                                             Lihat Table Pengadaan
                                                         </a>
                                                     </div>
@@ -159,9 +162,38 @@
                                                             Compare Penerimaan And Pengadaan
                                                         </a>
                                                     </div>
+                                                    
+                                                </li>
+                                                <li class="nav-item dropdown dropdown-hover dropdown-subitem">
+                                                    <a class="dropdown-item py-2 ps-3 border-radius-md"
+                                                        href="/pengadaan">
+                                                        <div
+                                                            class="w-100 d-flex align-items-center justify-content-between">
+                                                            <div>
+                                                                <h6
+                                                                    class="dropdown-header text-dark font-weight-bolder d-flex justify-content-cente align-items-center p-0">
+                                                                    Penjualan</h6>
+                                                                <span class="text-sm">Melakukan Penjualan</span>
+                                                            </div>
+                                                            <img src="./assets/img/down-arrow.svg" alt="down-arrow"
+                                                                class="arrow">
+                                                        </div>
+                                                    </a>
+                                                    <div class="dropdown-menu mt-0 py-3 px-2 mt-3">
+                                                        <a class="dropdown-item ps-3 border-radius-md mb-1"
+                                                            href="{{ route('penjualan.index') }}">
+                                                            History Penjualan
+                                                        </a>
+                                                    </div>
+                                                    <div class="dropdown-menu mt-0 py-3 px-2 mt-3">
+                                                        <a class="dropdown-item ps-3 border-radius-md mb-1"
+                                                            href="{{ route('penjualan.create') }}">
+                                                            Lakukan Penjualan
+                                                        </a>
+                                                    </div>
                                                 </li>
                                             </div>
-                                          
+
                                         </ul>
                                     </li>
                                 @endif

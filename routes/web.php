@@ -12,6 +12,8 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PengadaanController;
 use App\Http\Controllers\PenerimaanController;
 use App\Http\Controllers\ReturnController;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\MarginController;
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin', [ViewController::class, 'dashboard'])->name('index.admin');
@@ -64,6 +66,18 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::post('/return-items', [ReturnController::class, 'return'])->name('returnItems');
     Route::post('/return-penerimaan', [ReturnController::class, 'returnPenerimaan']);
+
+    Route::get('/penjualan', [ViewController::class, 'penjualan'])->name('penjualan.index');
+    Route::get('/penjualan/create', [PenjualanController::class, 'create'])->name('penjualan.create');
+    Route::get('/penjualan/detail/{id}', [PenjualanController::class, 'detail'])->name('penjualan.detail');
+    Route::get('/penjualan/barang', [PenjualanController::class, 'getBarang'])->name('penjualan.getBarang');
+    Route::post('/caribarang2', [PenjualanController::class, 'caribarang2'])->name('caribarang2');
+    Route::post('/penjualan/store', [PenjualanController::class, 'store'])->name('penjualan.store');
+    
+    Route::get('/margin', [ViewController::class, 'margin'])->name('margin');
+    Route::post('/margin/store', [MarginController::class, 'store'])->name('margin.store');
+    Route::delete('/margin/delete/{id}', [MarginController::class, 'delete'])->name('margin.delete');
+    Route::get('/margins', [MarginController::class, 'getMargins'])->name('getMargins');
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });
