@@ -9,7 +9,6 @@ class BarangController extends Controller
 {
     public function store(Request $request)
     {
-        // Validasi input
         $request->validate([
             'jenis' => 'required|string|max:255',
             'nama' => 'required|string|max:255',
@@ -17,18 +16,29 @@ class BarangController extends Controller
             'harga' => 'required|numeric',
         ]);
 
-        // Panggil stored procedure untuk insert
-        DB::statement('CALL InsertBarang(?, ?, ?, ?)', [$request->input('jenis'), $request->input('nama'), $request->input('idsatuan'), $request->input('harga')]);
+        $id = DB::table('barang')->insertGetId([
+            'jenis' => $request->input('jenis'),
+            'nama' => $request->input('nama'),
+            'idsatuan' => $request->input('idsatuan'),
+            'harga' => $request->input('harga'),
+            'status' => $request->input('status', 1),
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Barang berhasil ditambahkan.',
+            'data' => [
+                'idbarang' => $id,
+                'jenis' => $request->input('jenis'),
+                'nama' => $request->input('nama'),
+                'idsatuan' => $request->input('idsatuan'),
+                'harga' => $request->input('harga'),
+            ],
         ]);
     }
 
     public function update(Request $request, $id)
     {
-        // Validasi input
         $request->validate([
             'jenis' => 'required|string|max:255',
             'nama' => 'required|string|max:255',
@@ -36,31 +46,80 @@ class BarangController extends Controller
             'harga' => 'required|numeric',
         ]);
 
-        // Panggil stored procedure untuk update
-        $updated = DB::statement('CALL UpdateBarang(?, ?, ?, ?, ?)', [$id, $request->input('jenis'), $request->input('nama'), $request->input('idsatuan'), $request->input('harga')]);
+        $updated = DB::update('UPDATE barang SET jenis = ?, nama = ?, idsatuan = ?, harga = ? WHERE idbarang = ?', [$request->input('jenis'), $request->input('nama'), $request->input('idsatuan'), $request->input('harga'), $id]);
 
         if ($updated) {
             return response()->json([
                 'success' => true,
                 'message' => 'Barang berhasil diperbarui.',
             ]);
+        } else {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Barang gagal diperbarui.',
+                ],
+                500,
+            );
         }
-
-        return response()->json(['error' => 'Gagal memperbarui barang.'], 500);
     }
 
     public function delete($id)
     {
-        // Panggil stored procedure untuk delete
-        $deleted = DB::statement('CALL DeleteBarang(?)', [$id]);
+        $deleted = DB::delete('DELETE FROM barang WHERE idbarang = ?', [$id]);
 
         if ($deleted) {
             return response()->json([
                 'success' => true,
                 'message' => 'Barang berhasil dihapus.',
             ]);
+        } else {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Barang gagal dihapus.',
+                ],
+                500,
+            );
+        }
+    }
+
+    public function edit($id)
+    {
+        $barang = DB::select('SELECT * FROM barang WHERE idbarang = ?', [$id]);
+
+        if (empty($barang)) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Barang tidak ditemukan.',
+                ],
+                404,
+            );
         }
 
-        return response()->json(['error' => 'Gagal menghapus barang.'], 500);
+        return response()->json([
+            'success' => true,
+            'data' => $barang[0],
+        ]);
+    }
+    public function history($id)
+    {
+        $history = DB::select('SELECT * FROM kartu_stok WHERE idbarang = ? ORDER BY created_at DESC', [$id]);
+        @dd($history);
+        if ($history) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $history,
+            ]);
+        } else {
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'Tidak ada history untuk Barang ini.',
+                ],
+                404,
+            );
+        }
     }
 }

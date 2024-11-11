@@ -12,18 +12,13 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     // Insert (Create) User
-    public function w()
-    {
+    public function w(){
         return 'lol';
     }
     public function create(Request $request)
     {
-        // Hash password menggunakan bcrypt sebelum disimpan
-        $hashedPassword = bcrypt($request->input('password'));
-
-        // Panggil stored procedure dengan parameter yang dibutuhkan
-        DB::statement('CALL CreateUser(?, ?, ?, ?)', [$request->input('username'), $request->input('email'), $hashedPassword, $request->input('idrole')]);
-
+        // @dd($request);
+        DB::insert('INSERT INTO users (username, email, password, idrole) VALUES (?, ?, ?, ?)', [$request->input('username'), $request->input('email'), bcrypt($request->input('password')), $request->input('idrole')]);
         return redirect()->back()->with('success', 'User created successfully!');
     }
     public function update(Request $request, $iduser)
@@ -56,7 +51,7 @@ class AuthController extends Controller
                 // @dd(Auth::user()->status);
                 if ($user->idrole == 1) {
                     return redirect()->route('index.admin');
-                } else {
+                }else{
                     return redirect()->route('index.user');
                 }
             } else {
@@ -71,7 +66,7 @@ class AuthController extends Controller
         $user = DB::select('SELECT * FROM users WHERE status = 1');
         if ($user) {
             Auth::logout();
-            $user = $user[0]; // Mengakses elemen pertama dari array yang merupakan objek
+            $user = $user[0];  // Mengakses elemen pertama dari array yang merupakan objek
             DB::update('UPDATE users SET status = 0 WHERE iduser = ?', [$user->iduser]);
             return redirect('/login')->with('success', 'Anda telah berhasil logout.');
         }

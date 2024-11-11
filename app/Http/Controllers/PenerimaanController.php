@@ -69,49 +69,49 @@ class PenerimaanController extends Controller
         }
     }
     public function showReturnList($idPengadaan)
-    {
-        // Mengambil semua penerimaan berdasarkan idPengadaan
-        $penerimaanList = DB::select(
-            "SELECT p.idpenerimaan, p.created_at AS tanggal_penerimaan
+{
+    // Mengambil semua penerimaan berdasarkan idPengadaan
+    $penerimaanList = DB::select(
+        "SELECT p.idpenerimaan, p.created_at AS tanggal_penerimaan
         FROM penerimaan p
         WHERE p.idpengadaan = ?",
-            [$idPengadaan],
-        );
+        [$idPengadaan]
+    );
 
-        // Mengambil detail penerimaan untuk setiap penerimaan
-        $detailPenerimaan = [];
-        foreach ($penerimaanList as $penerimaan) {
-            // Ambil detail penerimaan untuk setiap penerimaan
-            $detailPenerimaan[$penerimaan->idpenerimaan] = DB::select(
-                "SELECT pd.iddetail_penerimaan, b.nama, pd.jumlah_terima,
+    // Mengambil detail penerimaan untuk setiap penerimaan
+    $detailPenerimaan = [];
+    foreach ($penerimaanList as $penerimaan) {
+        // Ambil detail penerimaan untuk setiap penerimaan
+        $detailPenerimaan[$penerimaan->idpenerimaan] = DB::select(
+            "SELECT pd.iddetail_penerimaan, b.nama, pd.jumlah_terima,
             pd.harga_satuan_terima, pd.sub_total_terima
             FROM detail_penerimaan pd
             JOIN barang b ON b.idbarang = pd.idbarang
             WHERE pd.idpenerimaan = ?",
-                [$penerimaan->idpenerimaan],
-            );
+            [$penerimaan->idpenerimaan]
+        );
 
-            foreach ($detailPenerimaan[$penerimaan->idpenerimaan] as $key => $detail) {
-                $returnDetails = DB::selectOne(
-                    "SELECT SUM(dr.jumlah) AS total_return
+        // Untuk setiap detail penerimaan, kita ambil detail retur
+        foreach ($detailPenerimaan[$penerimaan->idpenerimaan] as $key => $detail) {
+            $returnDetails = DB::select(
+                "SELECT SUM(dr.jumlah) AS total_return
                 FROM detail_retur dr
                 WHERE dr.iddetail_penerimaan = ?",
-                    [$detail->iddetail_penerimaan],
-                );
+                [$detail->iddetail_penerimaan]
+            );
 
-                // Mengurangi jumlah_terima dengan total_return
-                $totalReturn = $returnDetails->total_return ?? 0;
-                $detailPenerimaan[$penerimaan->idpenerimaan][$key]->jumlah_terima -= $totalReturn;
-
-                // Mengurangi sub_total_terima dengan total return dikali harga satuan
-                $detailPenerimaan[$penerimaan->idpenerimaan][$key]->sub_total_terima -= $totalReturn * $detail->harga_satuan_terima;
-            }
+            // Jika ada retur, kurangi sub_total_terima dengan total_return
+            $totalReturn = $returnDetails[0]->total_return ?? 0;
+            $detailPenerimaan[$penerimaan->idpenerimaan][$key]->sub_total_terima -= $totalReturn;
         }
-
-        return view('penerimaan.list', [
-            'penerimaanList' => $penerimaanList,
-            'detailPenerimaan' => $detailPenerimaan,
-            'idPengadaan' => $idPengadaan,
-        ]);
     }
+
+    return view('penerimaan.list', [
+        'penerimaanList' => $penerimaanList,
+        'detailPenerimaan' => $detailPenerimaan,
+        'idPengadaan' => $idPengadaan,
+    ]);
+}
+
+ 
 }
