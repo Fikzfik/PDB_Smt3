@@ -31,6 +31,34 @@
                     </div>
                 </div>
 
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editStockUnitModal" tabindex="-1" role="dialog"
+                    aria-labelledby="editStockUnitLabel" aria-hidden="true" data-bs-backdrop="false">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editStockUnitLabel">Edit Stock Unit</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editStockUnitForm">
+                                    @csrf
+                                    <input type="hidden" id="edit_idsatuan" name="idsatuan">
+                                    <div class="mb-3">
+                                        <label for="edit_nama_satuan" class="form-label">Nama Satuan</label>
+                                        <input type="text" class="form-control" id="edit_nama_satuan" name="nama_satuan"
+                                            required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tab-content tab-space">
                     <!-- Success Alert -->
                     <div id="success-alert" class="alert alert-success text-white font-weight-bold d-none" role="alert">
@@ -73,8 +101,14 @@
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $item->nama_satuan }}</td>
                                             <td>
+                                            <td>
+                                                <button type="button" class="btn btn-warning btn-sm editSatuan"
+                                                    data-id="{{ $item->idsatuan }}"
+                                                    data-nama_satuan="{{ $item->nama_satuan }}">Edit</button>
                                                 <button type="button" class="btn btn-danger btn-sm deleteSatuan"
                                                     data-id="{{ $item->idsatuan }}">Delete</button>
+                                            </td>
+
                                             </td>
                                         </tr>
                                     @endforeach
@@ -86,7 +120,7 @@
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -103,30 +137,35 @@
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        // Show success alert
-                        $('#success-alert').removeClass('d-none');
-
-                        // Hide the alert after 3 seconds
-                        setTimeout(function() {
-                            $('#success-alert').addClass('d-none');
-                        }, 3000);
+                        // Show success alert with SweetAlert2
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Stock Unit added successfully!',
+                            icon: 'success',
+                            timer: 2000
+                        });
 
                         $('#stockUnitForm')[0].reset(); // Clear the form
 
                         // Add new entry to the table dynamically
                         $('#satuanTableBody').append(
                             `<tr id="row-${response.idsatuan}">
-                        <td>${response.idsatuan}</td>
-                        <td>${response.nama_satuan}</td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm deleteSatuan" data-id="${response.idsatuan}">Delete</button>
-                        </td>
-                    </tr>`
+                                <td>${response.idsatuan}</td>
+                                <td>${response.nama_satuan}</td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm editSatuan" data-id="${response.idsatuan}" data-nama_satuan="${response.nama_satuan}">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm deleteSatuan" data-id="${response.idsatuan}">Delete</button>
+                                </td>
+                            </tr>`
                         );
                     },
                     error: function(error) {
                         console.error(error);
-                        alert('Error adding Stock Unit.');
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Error adding Stock Unit.',
+                            icon: 'error'
+                        });
                     }
                 });
             });
@@ -134,23 +173,91 @@
             // Delete Satuan
             $(document).on('click', '.deleteSatuan', function() {
                 let id = $(this).data('id');
-                if (confirm("Are you sure you want to delete this stock unit?")) {
-                    $.ajax({
-                        url: "{{ route('satuan.delete', ['id' => ':id']) }}".replace(':id', id),
-                        type: 'DELETE',
-                        data: {
-                            "_token": "{{ csrf_token() }}"
-                        },
-                        success: function(response) {
-                            // Remove the table row
-                            $(`#row-${id}`).remove();
-                        },
-                        error: function(error) {
-                            console.error(error);
-                            alert('Error deleting Stock Unit.');
-                        }
-                    });
-                }
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('satuan.delete', ['id' => ':id']) }}".replace(
+                                ':id', id),
+                            type: 'DELETE',
+                            data: {
+                                "_token": "{{ csrf_token() }}"
+                            },
+                            success: function(response) {
+                                // Remove the table row
+                                $(`#row-${id}`).remove();
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'Stock Unit deleted successfully.',
+                                    icon: 'success',
+                                    timer: 2000
+                                });
+                            },
+                            error: function(error) {
+                                console.error(error);
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Error deleting Stock Unit.',
+                                    icon: 'error'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Show edit modal with current data
+            $(document).on('click', '.editSatuan', function() {
+                let id = $(this).data('id');
+                let nama_satuan = $(this).data('nama_satuan');
+
+                // Set values in modal fields
+                $('#edit_idsatuan').val(id);
+                $('#edit_nama_satuan').val(nama_satuan);
+
+                // Show modal
+                $('#editStockUnitModal').modal('show');
+            });
+
+            // Handle edit form submission using AJAX
+            $('#editStockUnitForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let id = $('#edit_idsatuan').val();
+                let formData = $(this).serialize();
+
+                $.ajax({
+                    url: "{{ route('satuan.update', ['id' => ':id']) }}".replace(':id', id),
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#editStockUnitModal').modal('hide'); // Hide modal
+
+                        // Update table row
+                        $(`#row-${response.idsatuan} td:nth-child(2)`).text(response
+                            .nama_satuan);
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Stock Unit updated successfully.',
+                            icon: 'success',
+                            timer: 2000
+                        });
+                    },
+                    error: function(error) {
+                        console.error(error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to update Stock Unit.',
+                            icon: 'error'
+                        });
+                    }
+                });
             });
         });
     </script>

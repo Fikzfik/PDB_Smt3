@@ -21,12 +21,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/satuan', [ViewController::class, 'satuan'])->name('satuanBarang');
     Route::post('/satuan', [SatuanController::class, 'create'])->name('satuan.create');
     Route::delete('/satuan/{id}', [SatuanController::class, 'delete'])->name('satuan.delete');
+    Route::post('/satuan/{id}', [SatuanController::class, 'update'])->name('satuan.update');
 
     Route::get('/barang', [ViewController::class, 'barang'])->name('barang');
-    Route::post('/barang', [BarangController::class, 'store'])->name('barang.store');
-    Route::get('/barang/edit/{id}', [BarangController::class, 'edit'])->name('barang.edit');
-    Route::post('/barang/update/{id}', [BarangController::class, 'update'])->name('barang.update');
-    Route::get('/barang/delete/{id}', [BarangController::class, 'delete'])->name('barang.delete');
+    Route::post('/barang/store', [BarangController::class, 'store'])->name('barang.store');
+    Route::post('barang/update/{id}', [BarangController::class, 'update'])->name('barang.update');
+    Route::delete('/barang/{id}', [BarangController::class, 'delete'])->name('barang.destroy');
 
     Route::get('/kartu-stok', [ViewController::class, 'kartuStok'])->name('kartuStok');
     Route::post('kartu-stok/store', [KartuStokController::class, 'store'])->name('kartuStok.store');
@@ -38,6 +38,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/addrole', [ViewController::class, 'addrole'])->name('addrole');
     Route::post('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/roles/update/{id}', [RoleController::class, 'update'])->name('roles.update'); // Route untuk update
     Route::delete('/roles/delete/{id}', [RoleController::class, 'delete'])->name('roles.delete');
 
     Route::get('/adduser', [ViewController::class, 'adduser'])->name('adduser');
