@@ -40,13 +40,13 @@
                     <div class="tab-pane active" id="create-stock-unit">
                         <div class="row mb-4 px-5">
                             <div class="col-md-12">
-                                <h4 class="text-center">Form Input Stock Unit</h4>
+                                <h4 class="text-center">Form Input New Role</h4>
                                 <form id="stockUnitForm" method="POST">
                                     @csrf
                                     <div class="mb-3">
-                                        <label for="nama_satuan" class="form-label">Nama Satuan</label>
-                                        <input type="text" class="form-control" id="nama_satuan" name="nama_satuan"
-                                            placeholder="Enter stock unit name" required>
+                                        <label for="nama_role" class="form-label">Nama Role</label>
+                                        <input type="text" class="form-control" id="nama_role" name="nama_role"
+                                            placeholder="Enter role name" required>
                                     </div>
                                     <div class="mb-3">
                                         <button type="submit" class="btn btn-primary w-100">Add Unit</button>
@@ -63,7 +63,7 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>
-                                        <th scope="col">Nama Satuan</th>
+                                        <th scope="col">Nama Role</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
@@ -73,6 +73,9 @@
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $item->nama_role }}</td>
                                             <td>
+                                                <button type="button" class="btn btn-warning btn-sm editSatuan"
+                                                    data-id="{{ $item->idrole }}"
+                                                    data-nama="{{ $item->nama_role }}">Edit</button>
                                                 <button type="button" class="btn btn-danger btn-sm deleteSatuan"
                                                     data-id="{{ $item->idrole }}">Delete</button>
                                             </td>
@@ -86,73 +89,172 @@
             </div>
         </div>
     </div>
+    <!-- Modal Edit -->
+    <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel"
+        aria-hidden="true" data-bs-backdrop="false" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRoleModalLabel">Edit Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRoleForm" method="POST">
+                        @csrf
+                        <input type="hidden" name="_method" value="POST">
+                        <!-- Laravel mendukung metode ini untuk form POST -->
+                        <div class="mb-3">
+                            <label for="nama_role" class="form-label">Nama Role</label>
+                            <input type="text" class="form-control" id="nama_role" name="nama_role" required>
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary w-100">Update Role</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Include jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+        
         $(document).ready(function() {
-            // Handle form submission using AJAX
-
+            // Handle form submission for Create
             $('#stockUnitForm').on('submit', function(e) {
-                e.preventDefault(); // Prevent page refresh
+                e.preventDefault();
 
-                let formData = $(this).serialize(); // Serialize form data
+                let formData = $(this).serialize();
 
                 $.ajax({
-                    url: "{{ route('roles.create') }}", // Route to handle the form submission
+                    url: "{{ route('roles.create') }}",
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        // Show success alert
                         $('#success-alert').removeClass('d-none');
-
-                        // Hide the alert after 3 seconds
                         setTimeout(function() {
                             $('#success-alert').addClass('d-none');
                         }, 3000);
 
-                        $('#stockUnitForm')[0].reset(); // Clear the form
-
-                        // Add new entry to the table dynamically
-                        $('#satuanTableBody').append(
-                            `<tr id="row-${response.idrole}">
-                        <td>${response.idrole}</td>
-                        <td>${response.nama_role}</td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm deleteSatuan" data-id="${response.idrole}">Delete</button>
-                        </td>
-                    </tr>`
-                        );
+                        $('#stockUnitForm')[0].reset();
+                        $('#satuanTableBody').append(`
+                            <tr id="row-${response.idrole}">
+                                <td>${response.idrole}</td>
+                                <td>${response.nama_role}</td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm editSatuan" data-id="${response.idrole}" data-nama="${response.nama_role}">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm deleteSatuan" data-id="${response.idrole}">Delete</button>
+                                </td>
+                            </tr>
+                        `);
                     },
                     error: function(error) {
                         console.error(error);
-                        alert('Error adding Stock Unit.');
+                        alert('Error adding role.');
                     }
                 });
             });
 
-            // Delete Satuan
+            // Handle Edit Button Click
+            $(document).on('click', '.editSatuan', function() {
+                let id = $(this).data('id');
+                let nama_role = $(this).data('nama');
+
+                // Prefill modal form dengan data yang ada
+                $('#nama_role').val(nama_role);
+                $('#editRoleForm').data('id', id); // Simpan ID di form modal
+
+                // Tampilkan modal
+                $('#editRoleModal').modal('show');
+            });
+
+
+
+            // Handle form submission for Update
+            // Handle form submission for Update
+            // Handle form submission for Update
+            $('#editRoleForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let id = $(this).data('id'); // Ambil ID dari data form
+                let formData = $(this).serialize();
+
+                $.ajax({
+                    url: "{{ route('roles.update', ['id' => ':id']) }}".replace(':id',
+                        id), // Ganti :id dengan ID role
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        // Update data di tabel
+                        $(`#row-${response.idrole} td:nth-child(2)`).text(response.nama_role);
+
+                        // Tutup modal
+                        $('#editRoleModal').modal('hide');
+
+                        // Reset form
+                        $('#editRoleForm')[0].reset();
+                    },
+                    error: function(error) {
+                        console.error(error);
+                        alert('Error updating role.');
+                    }
+                });
+            });
+
+
+
+            // Handle Delete
             $(document).on('click', '.deleteSatuan', function() {
                 let id = $(this).data('id');
-                if (confirm("Are you sure you want to delete this stock unit?")) {
-                    $.ajax({
-                        url: "{{ route('roles.delete', ['id' => ':id']) }}".replace(':id', id),
-                        type: 'DELETE',
-                        data: {
-                            "_token": "{{ csrf_token() }}"
-                        },
-                        success: function(response) {
-                            // Remove the table row
-                            $(`#row-${id}`).remove();
-                        },
-                        error: function(error) {
-                            console.error(error);
-                            alert('Error deleting Stock Unit.');
-                        }
-                    });
-                }
+
+                // SweetAlert2 untuk konfirmasi sebelum menghapus
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, delete it!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('roles.delete', ['id' => ':id']) }}".replace(
+                                ':id', id),
+                            type: 'DELETE',
+                            data: {
+                                "_token": "{{ csrf_token() }}"
+                            },
+                            success: function(response) {
+                                // SweetAlert2 untuk notifikasi sukses setelah berhasil menghapus
+                                Swal.fire(
+                                    "Deleted!",
+                                    "The role has been deleted.",
+                                    "success"
+                                );
+
+                                // Hapus baris dari tabel
+                                $(`#row-${id}`).remove();
+                            },
+                            error: function(error) {
+                                console.error(error);
+                                Swal.fire(
+                                    "Error!",
+                                    "There was a problem deleting the role.",
+                                    "error"
+                                );
+                            }
+                        });
+                    }
+                });
             });
+
         });
     </script>
 @endsection

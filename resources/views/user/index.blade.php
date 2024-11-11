@@ -73,7 +73,8 @@
                             </div>
                         </div>
                     </div>
-
+                    <!-- Edit User Modal -->
+                    
                     <!-- Table Users -->
                     <div class="tab-pane" id="table-user">
                         <div class="table-responsive p-4">
@@ -96,10 +97,17 @@
                                             <td>{{ $user->email }}</td>
                                             <td>{{ $user->idrole }}</td>
                                             <td>{{ $user->status == 1 ? 'Aktif' : 'Inactive' }}</td>
+                                            <!-- Button Edit in Table -->
                                             <td>
+                                                <button type="button" class="btn btn-warning btn-sm editUser"
+                                                    data-id="{{ $user->iduser }}" data-username="{{ $user->username }}"
+                                                    data-email="{{ $user->email }}" data-idrole="{{ $user->idrole }}">
+                                                    Edit
+                                                </button>
                                                 <button type="button" class="btn btn-danger btn-sm deleteUser"
-                                                    data-id="{{ $user->iduser }}">Delete</button>
+                                                data-id="{{ $user->iduser }}">Delete</button>
                                             </td>
+
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -110,9 +118,99 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel"
+        aria-hidden="true" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" id="editUserId" name="iduser">
 
-    <!-- Include jQuery -->
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="editUsername" name="username"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail" name="email"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="editPassword"
+                                name="password" placeholder="Enter new password">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">Role</label>
+                            <select class="form-control" id="editRole" name="idrole" required>
+                                @foreach ($roles as $role)
+                                    <option value="{{ $role->idrole }}">{{ $role->nama_role }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Update User</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Open Edit User Modal
+            $(document).on('click', '.editUser', function() {
+                // Set data in modal fields
+                $('#editUserId').val($(this).data('id'));
+                $('#editUsername').val($(this).data('username'));
+                $('#editEmail').val($(this).data('email'));
+                $('#editRole').val($(this).data('idrole'));
+                $('#editPassword').val(''); // Clear password field
+
+                $('#editUserModal').modal('show');
+            });
+
+            // Submit Edit User Form
+            $('#editUserForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let id = $('#editUserId').val();
+                let formData = $(this).serialize();
+
+                $.ajax({
+                    url: "{{ route('users.update', ':id') }}".replace(':id', id),
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#editUserModal').modal('hide');
+                        $('#success-alert').removeClass('d-none').text(
+                            'User updated successfully!');
+                        setTimeout(function() {
+                            $('#success-alert').addClass('d-none');
+                        }, 3000);
+                        location.reload(); // Reload page to see changes
+                    },
+                    error: function(xhr) {
+                        alert('Error updating user');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {
@@ -160,20 +258,31 @@
                 let id = $(this).data('id');
                 if (confirm('Are you sure you want to delete this user?')) {
                     $.ajax({
-                        url: "{{ route('users.destroy', ['id' => ':id']) }}".replace(':id',
-                            id), // Route untuk delete user
+                        url: "{{ route('users.destroy', ['id' => ':id']) }}".replace(':id', id),
                         type: 'DELETE',
                         data: {
                             "_token": "{{ csrf_token() }}"
                         },
                         success: function(response) {
                             $(`#row-${id}`).remove();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'User deleted successfully!',
+                                text: 'User telah dihapus dari sistem.',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
                         },
                         error: function(xhr) {
-                            alert('Error deleting user');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error deleting user'
+                            });
                             console.error(xhr.responseText);
                         }
                     });
+
                 }
             });
         });

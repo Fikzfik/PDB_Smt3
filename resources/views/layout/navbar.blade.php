@@ -162,7 +162,7 @@
                                                             Compare Penerimaan And Pengadaan
                                                         </a>
                                                     </div>
-                                                    
+
                                                 </li>
                                                 <li class="nav-item dropdown dropdown-hover dropdown-subitem">
                                                     <a class="dropdown-item py-2 ps-3 border-radius-md"
@@ -184,8 +184,7 @@
                                                             href="{{ route('penjualan.index') }}">
                                                             History Penjualan
                                                         </a>
-                                                    </div>
-                                                    <div class="dropdown-menu mt-0 py-3 px-2 mt-3">
+
                                                         <a class="dropdown-item ps-3 border-radius-md mb-1"
                                                             href="{{ route('penjualan.create') }}">
                                                             Lakukan Penjualan

@@ -30,67 +30,89 @@
                     </div>
                 </div>
 
+                <!-- Edit Modal -->
+                <div class="modal fade modal-lg" id="editBarangModal" tabindex="-1" role="dialog"
+                    aria-labelledby="editBarangLabel" aria-hidden="true" data-bs-backdrop="false">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editBarangLabel">Edit Barang</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editBarangForm">
+                                    @csrf
+                                    <input type="hidden" id="edit_idbarang" name="idbarang">
+                                    <div class="mb-3">
+                                        <label for="edit_jenis" class="form-label">Jenis Barang</label>
+                                        <input type="text" class="form-control" id="edit_jenis" name="jenis" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_nama" class="form-label">Nama Barang</label>
+                                        <input type="text" class="form-control" id="edit_nama" name="nama" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_idsatuan" class="form-label">Satuan</label>
+                                        <select class="form-select" id="edit_idsatuan" name="idsatuan" required>
+                                            <option value="">Select Satuan</option>
+                                            @foreach ($satuan as $satuanItem)
+                                                <option value="{{ $satuanItem->idsatuan }}">{{ $satuanItem->nama_satuan }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="edit_harga" class="form-label">Harga</label>
+                                        <input type="number" class="form-control" id="edit_harga" name="harga" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tab-content tab-space">
-                    <!-- Success Alert -->
                     <div id="success-alert" class="alert alert-success text-white font-weight-bold d-none" role="alert">
                         Barang added successfully!
                     </div>
 
-                    <!-- Create Barang -->
                     <div class="tab-pane active" id="create-barang">
                         <div class="row mb-4 px-5">
                             <div class="col-md-12">
                                 <h4 class="text-center">Form Input Barang</h4>
                                 <form id="barangForm" method="POST">
                                     @csrf
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <div class="input-group input-group-dynamic mb-4">
-                                                    <label class="form-label mt-n3">Jenis Barang</label>
-                                                    <input class="form-control" aria-label="Jenis" type="text"
-                                                        id="jenis" name="jenis" placeholder="Enter barang jenis"
-                                                        required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <div class="input-group input-group-dynamic mb-4">
-                                                    <label class="form-label mt-n3">Nama Barang</label>
-                                                    <input class="form-control" aria-label="Nama Barang" type="text"
-                                                        id="nama" name="nama" placeholder="Enter barang name"
-                                                        required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <div class="input-group input-group-dynamic mb-4">
-                                                    <label class="form-label mt-n3">Harga Barang</label>
-                                                    <input class="form-control" aria-label="Harga" type="number"
-                                                        id="harga" name="harga" placeholder="Enter harga barang"
-                                                        required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <label for="idsatuan">Pilih Satuan</label>
-                                                <select class="form-control" id="idsatuan" name="idsatuan" required>
-                                                    <option value="">-- Pilih Satuan --</option>
-                                                    @foreach ($satuan as $item)
-                                                        <option value="{{ $item->idsatuan }}">{{ $item->nama_satuan }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-md-12">
-                                                <button type="submit" class="btn btn-primary w-100">Add Barang</button>
-                                            </div>
-                                        </div>
+                                    <div class="mb-3">
+                                        <label for="jenis" class="form-label">Jenis Barang</label>
+                                        <input type="text" class="form-control" id="jenis" name="jenis"
+                                            placeholder="Enter jenis barang" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="nama" class="form-label">Nama Barang</label>
+                                        <input type="text" class="form-control" id="nama" name="nama"
+                                            placeholder="Enter nama barang" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="idsatuan" class="form-label">Satuan</label>
+                                        <select class="form-select" id="idsatuan" name="idsatuan" required>
+                                            <option value="">Select Satuan</option>
+                                            @foreach ($satuan as $satuanItem)
+                                                <option value="{{ $satuanItem->idsatuan }}">{{ $satuanItem->nama_satuan }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="harga" class="form-label">Harga</label>
+                                        <input type="number" class="form-control" id="harga" name="harga"
+                                            placeholder="Enter harga barang" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button type="submit" class="btn btn-primary w-100">Add Barang</button>
                                     </div>
                                 </form>
                             </div>
@@ -106,6 +128,7 @@
                                         <th scope="col">#</th>
                                         <th scope="col">Jenis Barang</th>
                                         <th scope="col">Nama Barang</th>
+                                        <th scope="col">Satuan</th>
                                         <th scope="col">Harga</th>
                                         <th scope="col">Action</th>
                                     </tr>
@@ -116,10 +139,14 @@
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $item->jenis }}</td>
                                             <td>{{ $item->nama }}</td>
+                                            <td>{{ $item->nama_satuan }}</td>
                                             <td>{{ $item->harga }}</td>
                                             <td>
                                                 <button type="button" class="btn btn-warning btn-sm editBarang"
-                                                    data-id="{{ $item->idbarang }}">Edit</button>
+                                                    data-id="{{ $item->idbarang }}" data-jenis="{{ $item->jenis }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-idsatuan="{{ $item->idsatuan }}"
+                                                    data-harga="{{ $item->harga }}">Edit</button>
                                                 <button type="button" class="btn btn-danger btn-sm deleteBarang"
                                                     data-id="{{ $item->idbarang }}">Delete</button>
                                             </td>
@@ -134,75 +161,148 @@
         </div>
     </div>
 
+    <!-- Include SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script>
         $(document).ready(function() {
-            // Handle form submission using AJAX
+            // Handle form submission using AJAX for adding barang
             $('#barangForm').on('submit', function(e) {
-                e.preventDefault(); // Prevent page refresh
+                e.preventDefault();
 
-                let formData = $(this).serialize(); // Serialize form data
+                let formData = $(this).serialize();
 
                 $.ajax({
                     url: "{{ route('barang.store') }}",
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        // Show success alert
-                        $('#success-alert').removeClass('d-none');
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message,
+                            icon: 'success',
+                            timer: 2000
+                        });
 
-                        // Hide the alert after 3 seconds
-                        setTimeout(function() {
-                            $('#success-alert').addClass('d-none');
-                        }, 3000);
+                        $('#barangForm')[0].reset();
 
-                        $('#barangForm')[0].reset();  // Reset the correct form
-                        // Add new entry to the table dynamically
-                        $('#barangTableBody').append(
-                            `<tr id="row-${response.data.idbarang}">
-                            <td>${response.data.idbarang}</td>
-                            <td>${response.data.jenis}</td>
-                            <td>${response.data.nama}</td>
-                            <td>${response.data.harga}</td>
-                            <td>
-                                <button type="button" class="btn btn-warning btn-sm editBarang" data-id="${response.data.idbarang}">Edit</button>
-                                <button type="button" class="btn btn-danger btn-sm deleteBarang" data-id="${response.data.idbarang}">Delete</button>
-                            </td>
-                        </tr>`
-                        );
+                        $('#barangTableBody').append(`
+                            <tr id="row-${response.data.idbarang}">
+                                <td>${response.data.idbarang}</td>
+                                <td>${response.data.jenis}</td>
+                                <td>${response.data.nama}</td>
+                                <td>${response.data.satuan}</td>
+                                <td>${response.data.harga}</td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm editBarang" data-id="${response.data.idbarang}" data-jenis="${response.data.jenis}" data-nama="${response.data.nama}" data-idsatuan="${response.data.idsatuan}" data-harga="${response.data.harga}">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm deleteBarang" data-id="${response.data.idbarang}">Delete</button>
+                                </td>
+                            </tr>
+                        `);
+                    }
+                });
+            });
 
-                    },
-                    error: function(error) {
-                        console.error(error);
-                        alert('Error adding Barang.');
+            // Handle editing of barang
+            // Handle editing of barang
+            $(document).on('click', '.editBarang', function() {
+                let id = $(this).data('id');
+                let jenis = $(this).data('jenis');
+                let nama = $(this).data('nama');
+                let idsatuan = $(this).data('idsatuan');
+                let harga = $(this).data('harga');
+
+                $('#edit_idbarang').val(id);
+                $('#edit_jenis').val(jenis);
+                $('#edit_nama').val(nama);
+                $('#edit_idsatuan').val(idsatuan);
+                $('#edit_harga').val(harga);
+
+                // Disable page scroll when modal is open
+                $('body').css('overflow', 'hidden'); // Nonaktifkan scroll halaman utama
+                $('#editBarangModal').modal('show');
+            });
+
+            // Setelah modal ditutup, kembalikan scroll halaman utama
+            $('#editBarangModal').on('shown.bs.modal', function() {
+                $('html, body').animate({
+                    scrollTop: 400 // Atur nilai scroll lebih banyak, misalnya 200px dari atas
+                }, 300); // Durasi animasi 300ms
+            });
+
+
+            // Handle update barang
+            $('#editBarangForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let formData = $(this).serialize();
+                let id = $('#edit_idbarang').val();
+
+                $.ajax({
+                    url: `/barang/update/${id}`,
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message,
+                            icon: 'success',
+                            timer: 2000
+                        });
+
+                        // Update row in table
+                        let row = $('#row-' + id);
+                        row.find('td:eq(1)').text($('#edit_jenis').val());
+                        row.find('td:eq(2)').text($('#edit_nama').val());
+                        row.find('td:eq(3)').text($('#edit_idsatuan').val());
+                        row.find('td:eq(4)').text($('#edit_harga').val());
+
+                        $('#editBarangModal').modal('hide');
+                    }
+                });
+            });
+
+            $(document).ready(function() {
+                // Menambahkan CSRF token ke header AJAX
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
 
-            });
+                // Script untuk tombol delete
+                $(document).on('click', '.deleteBarang', function() {
+                    let id = $(this).data('id');
+                    let row = $('#row-' + id);
 
-            // Delete Barang
-            $(document).on('click', '.deleteBarang', function() {
-                let id = $(this).data('id');
-                if (confirm("Are you sure you want to delete this barang?")) {
-                    $.ajax({
-                        url: "{{ route('barang.delete', ['id' => ':id']) }}".replace(':id', id),
-                        type: 'DELETE',
-                        data: {
-                            "_token": "{{ csrf_token() }}"
-                        },
-                        success: function(response) {
-                            // Remove the table row
-                            $(`#row-${id}`).remove();
-                        },
-                        error: function(error) {
-                            console.error(error);
-                            alert('Error deleting Barang.');
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete it!',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: `/barang/${id}`,
+                                type: 'DELETE',
+                                success: function(response) {
+                                    Swal.fire({
+                                        title: 'Deleted!',
+                                        text: response.message,
+                                        icon: 'success',
+                                        timer: 2000
+                                    });
+
+                                    row.remove();
+                                }
+                            });
                         }
                     });
-                }
+                });
             });
+
         });
     </script>
 @endsection
