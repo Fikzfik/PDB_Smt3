@@ -8,19 +8,24 @@ use Illuminate\Support\Facades\Log;
 
 class VendorController extends Controller
 {
-    public function create(Request $request)
+    // VendorController.php
+    public function update(Request $request, $id)
     {
-
-        // Insert data menggunakan raw SQL
-        $result = DB::insert('INSERT INTO vendor (nama_vendor, badan_hukum, status) VALUES (?, ?, ?)', [
-            $request->input('nama_vendor'),
-            $request->input('badan_hukum'),
-            $request->input('status', 1)
-        ]);
+        $result = DB::statement('CALL sp_update_vendor(?, ?, ?)', [$id, $request->input('nama_vendor'), $request->input('badan_hukum')]);
 
         if ($result) {
-            $id = DB::getPdo()->lastInsertId();
-            return response()->json(['idvendor' => $id, 'nama_vendor' => $request->input('nama_vendor')], 201);
+            return response()->json(['idvendor' => $id, 'nama_vendor' => $request->input('nama_vendor'), 'badan_hukum' => $request->input('badan_hukum'), 'status' => 1], 200);
+        }
+
+        return response()->json(['error' => 'Failed to update vendor'], 500);
+    }
+
+    public function create(Request $request)
+    {
+        $result = DB::select('CALL sp_create_vendor(?, ?, ?)', [$request->input('nama_vendor'), $request->input('badan_hukum'), $request->input('status', 1)]);
+
+        if (!empty($result)) {
+            return response()->json(['idvendor' => $result[0]->idvendor, 'nama_vendor' => $request->input('nama_vendor')], 201);
         }
 
         return response()->json(['error' => 'Failed to add vendor'], 500);
@@ -28,7 +33,7 @@ class VendorController extends Controller
 
     public function delete($id)
     {
-        $result = DB::delete('DELETE FROM vendor WHERE idvendor = ?', [$id]);
+        $result = DB::statement('CALL sp_delete_vendor(?)', [$id]);
 
         if ($result) {
             return response()->json(['message' => 'Vendor deleted successfully'], 200);

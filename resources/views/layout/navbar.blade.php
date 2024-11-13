@@ -58,9 +58,8 @@
                                                 <a href="{{ route('adduser') }}" class="dropdown-item border-radius-md">
                                                     <span>Add User</span>
                                                 </a>
-                                                <a href="{{ route('kartuStok') }}"
-                                                    class="dropdown-item border-radius-md">
-                                                    <span>Test Kartu Stok</span>
+                                                <a href="{{ route('addvendor') }}" class="dropdown-item border-radius-md">
+                                                    <span>Add Vendor</span>
                                                 </a>
                                                 <a href="{{ route('addrole') }}" class="dropdown-item border-radius-md">
                                                     <span>Add Role</span>

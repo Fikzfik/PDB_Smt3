@@ -48,8 +48,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::put('/users/update/{id}', [UserController::class, 'update'])->name('users.update');
 
     Route::get('/addvendor', [ViewController::class, 'addvendor'])->name('addvendor');
-    Route::post('/vendor/create', [VendorController::class, 'create'])->name('vendor.create');
-    Route::delete('/vendor/delete/{id}', [VendorController::class, 'delete'])->name('vendor.delete');
+    Route::prefix('vendor')->group(function () {
+        Route::post('/create', [VendorController::class, 'create'])->name('vendor.create');
+        Route::post('/update/{id}', [VendorController::class, 'update'])->name('vendor.update');
+        Route::delete('/delete/{id}', [VendorController::class, 'delete'])->name('vendor.delete');
+    });
 
     Route::get('/pengadaan', [ViewController::class, 'dashboarduser'])->name('pengadaan');
     Route::get('/pengadaan/create', [PengadaanController::class, 'create'])->name('pengadaan.create');
@@ -74,11 +77,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/penjualan/barang', [PenjualanController::class, 'getBarang'])->name('penjualan.getBarang');
     Route::post('/caribarang2', [PenjualanController::class, 'caribarang2'])->name('caribarang2');
     Route::post('/penjualan/store', [PenjualanController::class, 'store'])->name('penjualan.store');
-    
+
     Route::get('/margin', [ViewController::class, 'margin'])->name('margin');
-    Route::post('/margin/store', [MarginController::class, 'store'])->name('margin.store');
-    Route::delete('/margin/delete/{id}', [MarginController::class, 'delete'])->name('margin.delete');
-    Route::get('/margins', [MarginController::class, 'getMargins'])->name('getMargins');
+    Route::post('/margin-penjualan/store', [MarginController::class, 'store'])->name('margin.store');
+    Route::post('/margin-penjualan/update/{id}', [MarginController::class, 'update'])->name('margin.update');
+    Route::delete('/margin-penjualan/delete/{id}', [MarginController::class, 'delete'])->name('margin.delete');
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });

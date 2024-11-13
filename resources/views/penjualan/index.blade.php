@@ -47,26 +47,19 @@
                                                         <th scope="col">Sub_Total</th>
                                                         <th scope="col">Total_Nilai</th>
                                                         <th scope="col">PPN</th>
-                                                        <th scope="col">Status</th>
                                                         <th scope="col">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($penjualans as $penjualan)
+                                                    {{-- @dd($penjualan); --}}
                                                         <tr>
                                                             <td>{{ $penjualan->idpenjualan }}</td>
                                                             <td>{{ $penjualan->username }}</td>
-                                                            <td>{{ $penjualan->nama_pembeli }}</td>
                                                             <td>{{ $penjualan->subtotal_nilai }}</td>
                                                             <td>{{ $penjualan->total_nilai }}</td>
                                                             <td>{{ $penjualan->ppn }}</td>
-                                                            <td>
-                                                                @if ($penjualan->status == 'A')
-                                                                    <p class="text-warning">PENDING</p>
-                                                                @else
-                                                                    <p class="text-success">SUCCESS</p>
-                                                                @endif
-                                                            </td>
+                                                            <td>{{ $penjualan->margin }}</td>
                                                             <td>
                                                                 <button class="btn btn-primary"
                                                                     onclick="detail({{ $penjualan->idpenjualan }})">DETAIL</button>

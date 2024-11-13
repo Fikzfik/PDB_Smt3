@@ -31,7 +31,6 @@
                 </div>
 
                 <div class="tab-content tab-space">
-                    <!-- Success Alert -->
                     <div id="success-alert" class="alert alert-success text-white font-weight-bold d-none" role="alert">
                         Margin Penjualan added successfully!
                     </div>
@@ -112,64 +111,138 @@
         </div>
     </div>
 
-    <!-- Include jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Modal Edit Margin Penjualan -->
+    <div class="modal fade" id="editMarginModal" tabindex="-1" aria-labelledby="editMarginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMarginModalLabel">Edit Margin Penjualan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMarginForm" method="POST">
+                        @csrf
+                        <input type="hidden" id="editMarginId" name="id">
+                        <div class="mb-3">
+                            <label for="editPersen" class="form-label">Persentase Margin</label>
+                            <input type="number" class="form-control" id="editPersen" name="persen" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStatus" class="form-label">Status Margin</label>
+                            <select class="form-control" id="editStatus" name="status" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Margin</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         $(document).ready(function() {
-            // Handle form submission using AJAX for margin penjualan
+            // Create Margin Penjualan
             $('#marginForm').on('submit', function(e) {
-                e.preventDefault(); // Prevent page refresh
+                e.preventDefault();
 
-                let formData = $(this).serialize(); // Serialize form data
-                console.log(formData); // Log formData untuk memastikan data yang dikirim
+                let formData = $(this).serialize();
 
                 $.ajax({
                     url: "{{ route('margin.store') }}",
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        $('#success-alert').removeClass('d-none');
-                        setTimeout(function() {
-                            $('#success-alert').addClass('d-none');
-                        }, 3000);
-                        $('#marginForm')[0].reset();
-                        $('#marginTableBody').append(
-                            `<tr id="row-${response.data.idmargin}">
-                    <td>${response.data.idmargin}</td>
-                    <td>${response.data.persen}%</td>
-                    <td>${response.data.status}</td>
-                    <td>
-                        <button type="button" class="btn btn-warning btn-sm editMargin" data-id="${response.data.idmargin}">Edit</button>
-                        <button type="button" class="btn btn-danger btn-sm deleteMargin" data-id="${response.data.idmargin}">Delete</button>
-                    </td>
-                </tr>`
-                        );
+                        if (response.success) {
+                            $('#success-alert').removeClass('d-none').text(
+                                'Margin Penjualan added successfully!');
+                            $('#marginForm')[0].reset();
+                            $('#table-margin').find('tbody').append(`
+                        <tr id="row-${response.data.idmargin_penjualan}">
+                            <td>${response.data.idmargin_penjualan}</td>
+                            <td>${response.data.persen}%</td>
+                            <td>${response.data.status}</td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm editMargin" data-id="${response.data.idmargin_penjualan}">Edit</button>
+                                <button type="button" class="btn btn-danger btn-sm deleteMargin" data-id="${response.data.idmargin_penjualan}">Delete</button>
+                            </td>
+                        </tr>
+                    `);
+                        } else {
+                            alert('Failed to add margin.');
+                        }
                     },
                     error: function(error) {
                         console.error(error);
-                        alert('Error adding Margin Penjualan.');
+                        alert('Error adding margin.');
                     }
                 });
             });
 
-            // Delete Margin Penjualan
+            // Edit Margin Penjualan
+            $(document).on('click', '.editMargin', function() {
+                let id = $(this).data('id');
+                let persen = $(`#row-${id} td`).eq(1).text().replace('%', '');
+                let status = $(`#row-${id} td`).eq(2).text().toLowerCase();
+
+                $('#editMarginId').val(id);
+                $('#editPersen').val(persen);
+                $('#editStatus').val(status);
+
+                $('#editMarginModal').modal('show');
+            });
+
+            // Update Margin Penjualan
+            $('#editMarginForm').on('submit', function(e) {
+                e.preventDefault();
+
+                let formData = $(this).serialize();
+                let id = $('#editMarginId').val();
+
+                $.ajax({
+                    url: "{{ route('margin.update', ':id') }}".replace(':id', id),
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            $('#editMarginModal').modal('hide');
+                            $('#success-alert').removeClass('d-none').text(
+                                'Margin Penjualan berhasil diperbarui.');
+
+                            let row = $(`#row-${response.data.idmargin_penjualan}`);
+                            row.find('td').eq(1).text(response.data.persen + '%');
+                            row.find('td').eq(2).text(response.data.status ? 'Active' :
+                                'Inactive');
+                        } else {
+                            alert('Gagal memperbarui margin.');
+                        }
+                    },
+                    error: function(error) {
+                        console.error(error);
+                        alert('Error updating margin.');
+                    }
+                });
+            });
+
+            // Delete Margin
             $(document).on('click', '.deleteMargin', function() {
                 let id = $(this).data('id');
-                if (confirm("Are you sure you want to delete this margin?")) {
+                if (confirm('Are you sure you want to delete this margin?')) {
                     $.ajax({
-                        url: "{{ route('margin.delete', ['id' => ':id']) }}".replace(':id', id),
+                        url: `{{ route('margin.delete', ':id') }}`.replace(':id', id),
                         type: 'DELETE',
-                        data: {
-                            "_token": "{{ csrf_token() }}"
-                        },
                         success: function(response) {
-                            // Remove the table row
-                            $(`#row-${id}`).remove();
+                            if (response.success) {
+                                $(`#row-${id}`).remove();
+                                alert('Margin Penjualan deleted successfully');
+                            } else {
+                                alert('Failed to delete margin.');
+                            }
                         },
                         error: function(error) {
                             console.error(error);
-                            alert('Error deleting Margin Penjualan.');
+                            alert('Error deleting margin.');
                         }
                     });
                 }
