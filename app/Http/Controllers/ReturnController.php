@@ -60,17 +60,12 @@ class ReturnController extends Controller
                     // Masukkan data ke tabel `detail_retur`
                     DB::insert('INSERT INTO detail_retur (jumlah, alasan, idretur, iddetail_penerimaan) VALUES (?, ?, ?, ?)', [$jumlahReturn, $alasan, $idRetur, $idDetailPenerimaan]);
 
-                    // Ambil stok saat ini dari `kartu_stok`
-                    $currentStockQuery = DB::selectOne('SELECT stock FROM kartu_stok WHERE idbarang = ? ORDER BY create_at DESC LIMIT 1', [$detailPenerimaan->idbarang]);
-                    $currentStock = $currentStockQuery->stock ?? 0;
-
-                    // Perbarui stok di `kartu_stok`
-                    DB::insert('INSERT INTO kartu_stok (jenis_transaksi, masuk, keluar, stock, idbarang, create_at, idtransaksi) VALUES (?, ?, ?, ?, ?, ?, ?)', ['2', 0, $jumlahReturn, $currentStock - $jumlahReturn, $detailPenerimaan->idbarang, now(), $idRetur]);
+                    // Catatan: Logika pengurangan stok dilakukan oleh trigger di database
                 }
             }
 
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Barang berhasil dikembalikan dan stok diperbarui.']);
+            return response()->json(['status' => 'success', 'message' => 'Barang berhasil dikembalikan. Stok diperbarui oleh trigger.']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Terjadi kesalahan saat memproses retur:', ['error' => $e->getMessage()]);

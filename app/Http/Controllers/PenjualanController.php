@@ -66,24 +66,6 @@ class PenjualanController extends Controller
             // Mulai transaksi
             DB::beginTransaction();
 
-            // Simpan data margin penjualan (jika idmargin_penjualan baru atau ingin update)
-            if (!$idMarginPenjualan) {
-                // Simpan margin penjualan baru
-                $idMarginPenjualan = DB::insert(
-                    '
-                INSERT INTO margin_penjualan (created_at, persen, status, iduser)
-                VALUES (NOW(), ?, ?, ?)',
-                    [
-                        $margin, // Persentase margin
-                        1, // Status aktif (contoh: 1 aktif, 0 tidak aktif)
-                        auth()->user()->iduser, // ID user yang sedang login
-                    ],
-                );
-
-                // Ambil ID margin penjualan yang baru saja disimpan
-                $idMarginPenjualan = DB::getPdo()->lastInsertId();
-            }
-
             // Simpan data penjualan
             DB::insert(
                 'INSERT INTO penjualan (created_at, subtotal_nilai, ppn, total_nilai, iduser, idmargin_penjualan)
