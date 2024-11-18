@@ -78,4 +78,11 @@ class MarginController extends Controller
 
         return response()->json(['error' => 'Gagal menghapus margin penjualan.'], 500);
     }
+    public function getMargins()
+    {
+        // Mengambil semua margin penjualan menggunakan raw SQL
+        $margins = DB::select('SELECT * FROM margin_penjualan');
+        // Mengirim data margin penjualan ke frontend
+        return response()->json(['margins' => $margins]);
+    }
 }
