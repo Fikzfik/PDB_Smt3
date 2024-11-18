@@ -82,6 +82,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/margin-penjualan/store', [MarginController::class, 'store'])->name('margin.store');
     Route::post('/margin-penjualan/update/{id}', [MarginController::class, 'update'])->name('margin.update');
     Route::delete('/margin-penjualan/delete/{id}', [MarginController::class, 'delete'])->name('margin.delete');
+    Route::get('/margins', [MarginController::class, 'getMargins'])->name('getMargins');
 
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
 });

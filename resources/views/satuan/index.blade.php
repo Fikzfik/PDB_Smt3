@@ -7,20 +7,20 @@
                 <div class="container border-bottom px-2">
                     <div class="row justify-space-between py-2">
                         <div class="col-lg-3 me-auto">
-                            <p class="lead text-dark pt-1 mb-0">Manage Vendor</p>
+                            <p class="lead text-dark pt-1 mb-0">Manage Stock Unit</p>
                         </div>
                         <div class="col-lg-3">
                             <div class="nav-wrapper position-relative end-0">
                                 <ul class="nav nav-pills nav-fill flex-row p-1" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link mb-0 px-0 py-1 active" data-bs-toggle="tab"
-                                            href="#create-vendor" role="tab" aria-controls="create"
+                                            href="#create-stock-unit" role="tab" aria-controls="create"
                                             aria-selected="true">
                                             <i class="fas fa-plus text-sm me-2"></i> Create
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#table-vendor"
+                                        <a class="nav-link mb-0 px-0 py-1" data-bs-toggle="tab" href="#table-stock-unit"
                                             role="tab" aria-controls="table" aria-selected="false">
                                             <i class="fas fa-table text-sm me-2"></i> Table
                                         </a>
@@ -32,22 +32,22 @@
                 </div>
 
                 <!-- Edit Modal -->
-                <div class="modal fade" id="editVendorModal" tabindex="-1" role="dialog"
-                    aria-labelledby="editVendorLabel" aria-hidden="true" data-bs-backdrop="false">
+                <div class="modal fade" id="editStockUnitModal" tabindex="-1" role="dialog"
+                    aria-labelledby="editStockUnitLabel" aria-hidden="true" data-bs-backdrop="false">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="editVendorLabel">Edit Vendor</h5>
+                                <h5 class="modal-title" id="editStockUnitLabel">Edit Stock Unit</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <form id="editVendorForm">
+                                <form id="editStockUnitForm">
                                     @csrf
-                                    <input type="hidden" id="edit_idvendor" name="idvendor">
+                                    <input type="hidden" id="edit_idsatuan" name="idsatuan">
                                     <div class="mb-3">
-                                        <label for="edit_nama_vendor" class="form-label">Nama Vendor</label>
-                                        <input type="text" class="form-control" id="edit_nama_vendor" name="nama_vendor"
+                                        <label for="edit_nama_satuan" class="form-label">Nama Satuan</label>
+                                        <input type="text" class="form-control" id="edit_nama_satuan" name="nama_satuan"
                                             required>
                                     </div>
                                     <div class="mb-3">
@@ -62,50 +62,53 @@
                 <div class="tab-content tab-space">
                     <!-- Success Alert -->
                     <div id="success-alert" class="alert alert-success text-white font-weight-bold d-none" role="alert">
-                        Vendor added successfully!
+                        Stock Unit added successfully!
                     </div>
 
-                    <div class="tab-pane active" id="create-vendor">
+                    <div class="tab-pane active" id="create-stock-unit">
                         <div class="row mb-4 px-5">
                             <div class="col-md-12">
-                                <h4 class="text-center">Form Input Vendor</h4>
-                                <form id="vendorForm" method="POST">
+                                <h4 class="text-center">Form Input Stock Unit</h4>
+                                <form id="stockUnitForm" method="POST">
                                     @csrf
                                     <div class="mb-3">
-                                        <label for="nama_vendor" class="form-label">Nama Vendor</label>
-                                        <input type="text" class="form-control" id="nama_vendor" name="nama_vendor"
-                                            placeholder="Enter vendor name" required>
+                                        <label for="nama_satuan" class="form-label">Nama Satuan</label>
+                                        <input type="text" class="form-control" id="nama_satuan" name="nama_satuan"
+                                            placeholder="Enter stock unit name" required>
                                     </div>
                                     <div class="mb-3">
-                                        <button type="submit" class="btn btn-primary w-100">Add Vendor</button>
+                                        <button type="submit" class="btn btn-primary w-100">Add Unit</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Table Vendor -->
-                    <div class="tab-pane" id="table-vendor">
+                    <!-- Table Stock Unit -->
+                    <div class="tab-pane" id="table-stock-unit">
                         <div class="table-responsive p-4">
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>
-                                        <th scope="col">Nama Vendor</th>
+                                        <th scope="col">Nama Satuan</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="vendorTableBody">
-                                    @foreach ($vendors as $vendor)
-                                        <tr id="row-{{ $vendor->idvendor }}">
+                                <tbody id="satuanTableBody">
+                                    @foreach ($satuan as $item)
+                                        <tr id="row-{{ $item->idsatuan }}">
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $vendor->nama_vendor }}</td>
+                                            <td>{{ $item->nama_satuan }}</td>
                                             <td>
-                                                <button type="button" class="btn btn-warning btn-sm editVendor"
-                                                    data-id="{{ $vendor->idvendor }}"
-                                                    data-nama_vendor="{{ $vendor->nama_vendor }}">Edit</button>
-                                                <button type="button" class="btn btn-danger btn-sm deleteVendor"
-                                                    data-id="{{ $vendor->idvendor }}">Delete</button>
+                                            <td>
+                                                <button type="button" class="btn btn-warning btn-sm editSatuan"
+                                                    data-id="{{ $item->idsatuan }}"
+                                                    data-nama_satuan="{{ $item->nama_satuan }}">Edit</button>
+                                                <button type="button" class="btn btn-danger btn-sm deleteSatuan"
+                                                    data-id="{{ $item->idsatuan }}">Delete</button>
+                                            </td>
+
                                             </td>
                                         </tr>
                                     @endforeach
@@ -118,86 +121,141 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
         $(document).ready(function() {
-            $('#vendorForm').on('submit', function(e) {
-                e.preventDefault();
-                let formData = $(this).serialize();
+            // Handle form submission using AJAX
+            $('#stockUnitForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent page refresh
+
+                let formData = $(this).serialize(); // Serialize form data
+
                 $.ajax({
-                    url: "{{ route('vendor.create') }}",
+                    url: "{{ route('satuan.create') }}", // Route to handle the form submission
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        Swal.fire('Success!', 'Vendor added successfully!', 'success');
-                        $('#vendorForm')[0].reset();
-                        $('#vendorTableBody').append(
-                            `<tr id="row-${response.idvendor}">
-                                <td>${response.idvendor}</td>
-                                <td>${response.nama_vendor}</td>
+                        // Show success alert with SweetAlert2
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Stock Unit added successfully!',
+                            icon: 'success',
+                            timer: 2000
+                        });
+
+                        $('#stockUnitForm')[0].reset(); // Clear the form
+
+                        // Add new entry to the table dynamically
+                        $('#satuanTableBody').append(
+                            `<tr id="row-${response.idsatuan}">
+                                <td>${response.idsatuan}</td>
+                                <td>${response.nama_satuan}</td>
                                 <td>
-                                    <button type="button" class="btn btn-warning btn-sm editVendor" data-id="${response.idvendor}" data-nama_vendor="${response.nama_vendor}">Edit</button>
-                                    <button type="button" class="btn btn-danger btn-sm deleteVendor" data-id="${response.idvendor}">Delete</button>
+                                    <button type="button" class="btn btn-primary btn-sm editSatuan" data-id="${response.idsatuan}" data-nama_satuan="${response.nama_satuan}">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm deleteSatuan" data-id="${response.idsatuan}">Delete</button>
                                 </td>
                             </tr>`
                         );
                     },
                     error: function(error) {
-                        Swal.fire('Error!', 'Failed to add vendor.', 'error');
+                        console.error(error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Error adding Stock Unit.',
+                            icon: 'error'
+                        });
                     }
                 });
             });
 
-            $(document).on('click', '.deleteVendor', function() {
+            // Delete Satuan
+            $(document).on('click', '.deleteSatuan', function() {
                 let id = $(this).data('id');
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: "This will delete the vendor.",
+                    text: "You won't be able to revert this!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('vendor.delete', ['id' => ':id']) }}".replace(':id', id),
+                            url: "{{ route('satuan.delete', ['id' => ':id']) }}".replace(
+                                ':id', id),
                             type: 'DELETE',
-                            data: { "_token": "{{ csrf_token() }}" },
-                            success: function() {
-                                $(`#row-${id}`).remove();
-                                Swal.fire('Deleted!', 'Vendor deleted.', 'success');
+                            data: {
+                                "_token": "{{ csrf_token() }}"
                             },
-                            error: function() {
-                                Swal.fire('Error!', 'Failed to delete vendor.', 'error');
+                            success: function(response) {
+                                // Remove the table row
+                                $(`#row-${id}`).remove();
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'Stock Unit deleted successfully.',
+                                    icon: 'success',
+                                    timer: 2000
+                                });
+                            },
+                            error: function(error) {
+                                console.error(error);
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Error deleting Stock Unit.',
+                                    icon: 'error'
+                                });
                             }
                         });
                     }
                 });
             });
 
-            $(document).on('click', '.editVendor', function() {
+            // Show edit modal with current data
+            $(document).on('click', '.editSatuan', function() {
                 let id = $(this).data('id');
-                let nama_vendor = $(this).data('nama_vendor');
-                $('#edit_idvendor').val(id);
-                $('#edit_nama_vendor').val(nama_vendor);
-                $('#editVendorModal').modal('show');
+                let nama_satuan = $(this).data('nama_satuan');
+
+                // Set values in modal fields
+                $('#edit_idsatuan').val(id);
+                $('#edit_nama_satuan').val(nama_satuan);
+
+                // Show modal
+                $('#editStockUnitModal').modal('show');
             });
 
-            $('#editVendorForm').on('submit', function(e) {
+            // Handle edit form submission using AJAX
+            $('#editStockUnitForm').on('submit', function(e) {
                 e.preventDefault();
-                let id = $('#edit_idvendor').val();
+
+                let id = $('#edit_idsatuan').val();
                 let formData = $(this).serialize();
+
                 $.ajax({
-                    url: "{{ route('vendor.update', ['id' => ':id']) }}".replace(':id', id),
+                    url: "{{ route('satuan.update', ['id' => ':id']) }}".replace(':id', id),
                     type: 'POST',
                     data: formData,
                     success: function(response) {
-                        $('#editVendorModal').modal('hide');
-                        $(`#row-${response.idvendor} td:nth-child(2)`).text(response.nama_vendor);
-                        Swal.fire('Success!', 'Vendor updated successfully.', 'success');
+                        $('#editStockUnitModal').modal('hide'); // Hide modal
+
+                        // Update table row
+                        $(`#row-${response.idsatuan} td:nth-child(2)`).text(response
+                            .nama_satuan);
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Stock Unit updated successfully.',
+                            icon: 'success',
+                            timer: 2000
+                        });
                     },
-                    error: function() {
-                        Swal.fire('Error!', 'Failed to update vendor.', 'error');
+                    error: function(error) {
+                        console.error(error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to update Stock Unit.',
+                            icon: 'error'
+                        });
                     }
                 });
             });

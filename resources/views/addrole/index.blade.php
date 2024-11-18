@@ -68,7 +68,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="salesUnitTableBody">
-                                    @foreach ($salesRoles as $item)
+                                    @foreach ($roles as $item)
                                         <tr id="row-{{ $item->idrole }}">
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $item->nama_role }}</td>
@@ -130,7 +130,7 @@
                 let formData = $(this).serialize();
 
                 $.ajax({
-                    url: "{{ route('salesRoles.create') }}",
+                    url: "{{ route('roles.create') }}",
                     type: 'POST',
                     data: formData,
                     success: function(response) {
@@ -177,7 +177,7 @@
                 let formData = $(this).serialize();
 
                 $.ajax({
-                    url: "{{ route('salesRoles.update', ['id' => ':id']) }}".replace(':id', id),
+                    url: "{{ route('roles.update', ['id' => ':id']) }}".replace(':id', id),
                     type: 'POST',
                     data: formData,
                     success: function(response) {
@@ -210,7 +210,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('salesRoles.delete', ['id' => ':id']) }}".replace(':id', id),
+                            url: "{{ route('roles.delete', ['id' => ':id']) }}".replace(':id', id),
                             type: 'DELETE',
                             data: {
                                 "_token": "{{ csrf_token() }}"
