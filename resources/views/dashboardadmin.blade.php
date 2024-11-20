@@ -17,7 +17,7 @@
                                 </div>
                                 <hr class="vertical dark">
                             </div>
-                        
+
                             <!-- Pengadaan Selesai -->
                             <div class="col-md-4 position-relative">
                                 <div class="p-3 text-center">
@@ -28,7 +28,7 @@
                                     <p class="text-sm font-weight-normal">Total pengadaan yang sudah selesai diproses.</p>
                                 </div>
                             </div>
-                        
+
                             <!-- Pengadaan Return -->
                             <div class="col-md-4 position-relative">
                                 <div class="p-3 text-center">
@@ -41,7 +41,7 @@
                                 <hr class="vertical dark">
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
             </div>
@@ -52,27 +52,27 @@
                 <h2 class="text-center mb-5">Permintaan Pengadaan</h2>
                 <div id="pengadaanCarousel" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
-                        @foreach (array_chunk($pengadaans, 3) as $chunk)
+                        @foreach (array_chunk($pengadaans->toArray(), 3) as $chunk)
                             <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                                 <div class="row align-items-center">
                                     @foreach ($chunk as $p)
                                         <div class="col-lg-4 ms-auto me-auto p-lg-4 mt-lg-0 mt-4">
                                             <div class="rotating-card-container">
                                                 <div class="card card-rotate card-background card-background-mask-primary shadow-primary mt-md-0 mt-5"
-                                                    onclick="detail({{ $p->idpengadaan }})">
+                                                    onclick="detail({{ $p['idpengadaan'] }})">
                                                     <div class="front front-background"
                                                         style="background-image: url('https://images.unsplash.com/photo-1569683795645-b62e50fbf103?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=987&q=80'); background-size: cover;">
                                                         <div class="card-body py-7 text-center">
                                                             <h3 class="text-white">Status Pengadaan</h3>
                                                             <h3>
                                                                 <span class="text-warning">
-                                                                    {{ $p->status == 'A' ? 'Pending' : 'Completed' }}
+                                                                    {{ $p['status'] == 'A' ? 'Pending' : 'Completed' }}
                                                                 </span>
                                                             </h3>
                                                             <p class="text-white opacity-8">
                                                                 <b>Nama Yang Ingin Melakukan Pengadaan:
-                                                                    {{ $p->username }}</b><br>
-                                                                Total Nilai Pengadaan: {{ $p->total_nilai }}
+                                                                    {{ $p['username'] }}</b><br>
+                                                                Total Nilai Pengadaan: {{ $p['total_nilai'] }}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -82,14 +82,14 @@
                                                             <h3 class="text-white">Detail Pengadaan</h3>
                                                             <p class="text-white opacity-8">
                                                                 <b>Nama Yang Ingin Melakukan Pengadaan:
-                                                                    {{ $p->username }}</b><br>
-                                                                Total Nilai Pengadaan: {{ $p->total_nilai }}<br>
+                                                                    {{ $p['username'] }}</b><br>
+                                                                Total Nilai Pengadaan: {{ $p['total_nilai'] }}<br>
                                                                 Tanggal Pengadaan:
-                                                                {{ \Carbon\Carbon::parse($p->timestamp)->format('d-m-Y H:i') }}<br>
-                                                                Nilai PPN: {{ $p->ppn }}
+                                                                {{ \Carbon\Carbon::parse($p['timestamp'])->format('d-m-Y H:i') }}<br>
+                                                                Nilai PPN: {{ $p['ppn'] }}
                                                             </p>
                                                             <a href="#" class="btn btn-white btn-sm w-50 mx-auto mt-3"
-                                                                data-idpengadaan="{{ $p->idpengadaan }}"
+                                                                data-idpengadaan="{{ $p['idpengadaan'] }}"
                                                                 onclick="detail(this)">Lihat Detail</a>
                                                         </div>
                                                     </div>

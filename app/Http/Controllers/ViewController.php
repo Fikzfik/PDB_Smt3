@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\DetailPengadaan;
 use App\Models\ViewPengadaan;
+use App\Models\ViewPengadaanWhereA;
 
 class ViewController extends Controller
 {
@@ -18,13 +19,8 @@ class ViewController extends Controller
 
         // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
         $detail = DetailPengadaan::all();
-        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-            WHERE p.status = "A"
-    ');
-
+       $pengadaans = ViewPengadaanWhereA::all();
+        
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
         $jumlahPending = $jumlahPending[0]->total;
