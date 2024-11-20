@@ -7,6 +7,9 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\DetailPengadaan;
+use App\Models\ViewPengadaan;
+use App\Models\ViewPengadaanWhereA;
 
 class ViewController extends Controller
 {
@@ -15,22 +18,9 @@ class ViewController extends Controller
         $validUser = Auth::user();
 
         // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
-        $detail = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp,
-            dp.iddetail_pengadaan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total, s.nama_satuan
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-            JOIN detail_pengadaan dp ON p.idpengadaan = dp.idpengadaan
-            JOIN barang b ON dp.idbarang = b.idbarang
-            JOIN satuan s ON b.idsatuan = s.idsatuan
-    ');
-        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status, p.timestamp
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-            WHERE p.status = "A"
-    ');
-
+        $detail = DetailPengadaan::all();
+       $pengadaans = ViewPengadaanWhereA::all();
+        
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
         $jumlahPending = $jumlahPending[0]->total;
@@ -47,11 +37,7 @@ class ViewController extends Controller
     public function dashboarduser()
     {
         $validUser = Auth::user();
-        $pengadaans = DB::select('SELECT p.idpengadaan, u.username, v.nama_vendor, p.subtotal_nilai, p.total_nilai, p.ppn, p.status
-            FROM pengadaan p
-            JOIN users u ON p.users_iduser = u.iduser
-            JOIN vendor v ON p.vendor_idvendor = v.idvendor
-        ');
+        $pengadaans = ViewPengadaan::all();
         // @dd($pengadaans);
         return view('dashboarduser', compact('validUser', 'pengadaans'));
     }
