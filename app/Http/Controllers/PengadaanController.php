@@ -120,6 +120,25 @@ class PengadaanController extends Controller
                 $idbarang = $item['idbarang'];
                 $jumlah = $item['quantity'];
 
+                // Validasi jumlah barang terhadap pengadaan
+                $detailPengadaan = DB::selectOne(
+                    'SELECT (dp.jumlah - COALESCE(SUM(dr.jumlah_terima), 0)) AS sisa_jumlah
+        FROM detail_pengadaan dp
+        LEFT JOIN barang b ON b.idbarang = dp.idbarang
+        LEFT JOIN detail_penerimaan dr ON dp.idbarang = dr.idbarang
+        WHERE dp.idpengadaan = ? AND dp.idbarang = ?
+        GROUP BY dp.iddetail_pengadaan, dp.jumlah',
+                    [$idpengadaan, $idbarang],
+                );
+
+                if (!$detailPengadaan || $detailPengadaan->sisa_jumlah <= 0) {
+                    throw new \Exception("Barang dengan ID {$idbarang} tidak tersedia untuk diterima.");
+                }
+
+                if ($jumlah > $detailPengadaan->sisa_jumlah) {
+                    throw new \Exception("Jumlah penerimaan untuk barang ID {$idbarang} melebihi permintaan pengadaan. Sisa jumlah: {$detailPengadaan->sisa_jumlah}.");
+                }
+
                 // Validasi barang dan harga satuan
                 $barang = DB::selectOne('SELECT harga FROM barang WHERE idbarang = ?', [$idbarang]);
                 if (!$barang) {
@@ -132,11 +151,9 @@ class PengadaanController extends Controller
                 // Tambahkan data detail penerimaan
                 DB::insert(
                     'INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang)
-                 VALUES (?, ?, ?, ?, ?)',
+        VALUES (?, ?, ?, ?, ?)',
                     [$jumlah, $hargaSatuan, $subTotal, $idpenerimaan, $idbarang],
                 );
-
-                // Tidak perlu lagi update stok karena trigger sudah menangani hal ini
             }
 
             $isAllZero = DB::selectOne('SELECT isAllItemsReceived(?) AS is_all_received', [$idpengadaan])->is_all_received;
