@@ -50,7 +50,7 @@
         <section class="my-5 py-5">
             <div class="container">
                 <h2 class="text-center mb-5">Permintaan Pengadaan</h2>
-                <div id="pengadaanCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div id="pengadaanCarousel" class="carousel slide" d ata-bs-ride="carousel">
                     <div class="carousel-inner">
                         @foreach (array_chunk($pengadaans->toArray(), 3) as $chunk)
                             <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
