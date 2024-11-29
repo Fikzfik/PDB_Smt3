@@ -49,14 +49,19 @@ class PengadaanController extends Controller
         // Ambil data dari request
         $idVendor = $request->input('id_vendor');
         $subtotal = $request->input('subtotal');
-        $ppn = (int) ($subtotal * 0.11); // Hitung PPN 11%
-        $total = $subtotal + $ppn; // Total = Subtotal + PPN
         $barangPilih = json_decode($request->input('barangPilih'), true); // Decode JSON
 
         try {
             // Mulai transaksi
             DB::beginTransaction();
 
+            // Panggil fungsi MySQL untuk menghitung PPN
+            $ppn = DB::selectOne('SELECT CalculatePPN(?) AS ppn', [$subtotal])->ppn;
+
+            // Hitung total
+            $total = $subtotal + $ppn;
+
+            // Simpan data pengadaan menggunakan prosedur
             $pengadaanId = DB::selectOne('CALL InsertPengadaan(?, ?, ?, ?, ?, ?, @p_idpengadaan)', [
                 auth()->user()->iduser, // The ID of the logged-in user
                 $idVendor, // The ID of the vendor
@@ -94,6 +99,7 @@ class PengadaanController extends Controller
             );
         }
     }
+
     public function terimaPengadaan(Request $request, $idpengadaan)
     {
         $items = $request->input('items');
