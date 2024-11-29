@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\DetailPengadaan;
 use App\Models\ViewPengadaan;
+use App\Models\ViewPenerimaan;
+use App\Models\ViewPenjualan;
 use App\Models\ViewPengadaanWhereA;
+use App\Models\KartuStockBarang;
 
 class ViewController extends Controller
 {
@@ -74,18 +77,7 @@ class ViewController extends Controller
     public function kartustok()
     {
         $validUser = Auth::user();
-        $barang = DB::select("SELECT barang.idbarang, barang.nama, ks.stok_terakhir
-            FROM barang
-            LEFT JOIN (
-                SELECT idbarang, stock AS stok_terakhir
-                FROM kartu_stok
-                WHERE (idbarang, create_at) IN (
-                    SELECT idbarang, MAX(create_at)
-                    FROM kartu_stok
-                    GROUP BY idbarang
-                )
-            ) AS ks ON barang.idbarang = ks.idbarang
-        ");
+        $barang = KartuStockBarang::all();
 
         return view('kartustok.index', compact('validUser', 'barang'));
     }
@@ -116,26 +108,14 @@ class ViewController extends Controller
     public function penerimaan()
     {
         $validUser = Auth::user();
-        $penerimaans = DB::select("SELECT p.idpengadaan,
-           MAX(p.idpenerimaan) AS idpenerimaan,
-           MAX(p.created_at) AS created_at,
-           u.username,
-           p.status
-            FROM penerimaan p
-            JOIN users u ON p.iduser = u.iduser
-            GROUP BY p.idpengadaan, u.username, p.status
-        ");
+        $penerimaans = ViewPenerimaan::all();
 
         return view('penerimaan.index', compact('validUser', 'penerimaans'));
     }
     public function penjualan()
     {
         $validUser = Auth::user();
-        $penjualans = DB::select('SELECT pj.idpenjualan, u.username, pj.subtotal_nilai, pj.total_nilai, pj.ppn, pj.created_at, m.persen AS margin
-        FROM penjualan pj
-        JOIN users u ON pj.iduser = u.iduser
-        LEFT JOIN margin_penjualan m ON pj.idmargin_penjualan = m.idmargin_penjualan
-    ');
+        $penjualans = ViewPenjualan::all();
 
         return view('penjualan.index', compact('validUser', 'penjualans'));
     }
