@@ -65,9 +65,14 @@
                                                             <td>
                                                                 @if ($pengadaan->status == 'A')
                                                                     <p class="text-warning">PENDING</p>
-                                                                @else
+                                                                @elseif ($pengadaan->status == 'B')
                                                                     <p class="text-success">SUCCESS</p>
+                                                                @elseif ($pengadaan->status == 'C')
+                                                                    <p class="text-danger">CANCEL</p>
+                                                                @elseif ($pengadaan->status == 'D')
+                                                                    <p class="text-info">PROGRESS</p>
                                                                 @endif
+
                                                             </td>
                                                             <td>
                                                                 <button class="btn btn-primary"
@@ -124,6 +129,8 @@
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Script untuk ajax detail pengadaan -->
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script>
@@ -140,26 +147,41 @@
                         // Populate the table with procurement details
                         data.forEach(item => {
                             let row = `
-                        <tr>
-                            <td>${item.iddetail_pengadaan}</td>
-                            <td>${item.idpengadaan}</td>
-                            <td>${item.nama}</td>
-                            <td>${item.harga_satuan}</td>
-                            <td>${item.jumlah}</td>
-                            <td>${item.sub_total}</td>
-                        </tr>`;
+                    <tr>
+                        <td>${item.iddetail_pengadaan}</td>
+                        <td>${item.idpengadaan}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.harga_satuan}</td>
+                        <td>${item.jumlah}</td>
+                        <td>${item.sub_total}</td>
+                    </tr>`;
                             $('#tableDetail tbody').append(row);
                         });
 
                         // Conditionally render footer buttons based on procurement status
-                        if (procurementStatus === "B") {
+                        if (procurementStatus === "A") {
                             $('#modalFooter').html(`
-                        <button type="button" class="btn btn-success" onclick="penerimaan(${id})">Penerimaan</button>
-                        <button type="button" class="btn btn-info" onclick="window.location.href='/penerimaan/comparison/${id}'">View Comparison</button>
+                        <button class="btn btn-danger" onclick="deletePengadaan(${id})">DELETE PENGADAAN</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    `);
+                        } else if (procurementStatus === "B") {
+                            $('#modalFooter').html(`
+                        <button type="button" class="btn btn-success" onclick="penerimaan(${id})">Lihat Penerimaan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    `);
+                        } else if (procurementStatus === "C") {
+                            $('#modalFooter').html(`
+                        <p class="text-danger">Pengadaan ini telah dibatalkan.</p>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    `);
+                        } else if (procurementStatus === "D") {
+                            $('#modalFooter').html(`
+                        <p class="text-primary">Pengadaan sedang dalam proses.</p>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     `);
                         } else {
                             $('#modalFooter').html(`
+                        <p class="text-muted">Status pengadaan tidak diketahui.</p>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     `);
                         }
@@ -189,35 +211,44 @@
         }
 
 
-        function viewComparison(id) {
-            $.ajax({
-                type: 'GET',
-                url: `/penerimaan/comparison/${id}`,
-                dataType: 'json',
-                success: function(response) {
-                    // Check if there’s an error message in the response
-                    if (response.error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: response.error,
-                            confirmButtonText: 'OK'
-                        });
-                    } else {
-                        // If no error, proceed to redirect
-                        window.location.href = `/penerimaan/comparison/${id}`;
-                    }
-                },
-                error: function(xhr) {
-                    const errorMessage = xhr.responseJSON && xhr.responseJSON.error ?
-                        xhr.responseJSON.error :
-                        'Terjadi kesalahan saat mengambil data.';
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: errorMessage,
-                        confirmButtonText: 'OK'
+        function deletePengadaan(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Pengadaan ini akan dibatalkan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Batalkan!',
+                cancelButtonText: 'Tidak, Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('pengadaan.delete') }}',
+                        data: {
+                            idpengadaan: id,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: response.message,
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload(); // Refresh halaman
+                            });
+                        },
+                        error: function(xhr) {
+                            const errorMessage = xhr.responseJSON && xhr.responseJSON.message ?
+                                xhr.responseJSON.message :
+                                'Terjadi kesalahan saat membatalkan pengadaan.';
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: errorMessage,
+                                confirmButtonText: 'OK'
+                            });
+                        }
                     });
                 }
             });

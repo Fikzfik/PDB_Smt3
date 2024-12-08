@@ -138,7 +138,7 @@
                                                 </li>
                                                 <li class="nav-item dropdown dropdown-hover dropdown-subitem">
                                                     <a class="dropdown-item py-2 ps-3 border-radius-md"
-                                                        href="/pengadaan">
+                                                        href="/penerimaan">
                                                         <div
                                                             class="w-100 d-flex align-items-center justify-content-between">
                                                             <div>
@@ -165,7 +165,7 @@
                                                 </li>
                                                 <li class="nav-item dropdown dropdown-hover dropdown-subitem">
                                                     <a class="dropdown-item py-2 ps-3 border-radius-md"
-                                                        href="/pengadaan">
+                                                        href="/penjualan">
                                                         <div
                                                             class="w-100 d-flex align-items-center justify-content-between">
                                                             <div>

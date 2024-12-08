@@ -99,7 +99,47 @@ class PengadaanController extends Controller
             );
         }
     }
+    public function delete(Request $request)
+    {
+        try {
+            // Validasi ID pengadaan
+            $idpengadaan = $request->input('idpengadaan');
 
+            // Periksa apakah ID pengadaan ada di database
+            $pengadaan = DB::select('SELECT * FROM pengadaan WHERE idpengadaan = ? LIMIT 1', [$idpengadaan]);
+
+            if (empty($pengadaan)) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'Pengadaan tidak ditemukan.',
+                    ],
+                    404,
+                );
+            }
+
+            // Update status pengadaan menjadi 'C'
+            DB::update('UPDATE pengadaan SET status = ? WHERE idpengadaan = ?', ['C', $idpengadaan]);
+
+            // Kirim respons sukses
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => 'Pengadaan berhasil dibatalkan.',
+                ],
+                200,
+            );
+        } catch (\Exception $e) {
+            // Kirim respons error jika gagal
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
     public function terimaPengadaan(Request $request, $idpengadaan)
     {
         $items = $request->input('items');
@@ -157,16 +197,17 @@ class PengadaanController extends Controller
                 // Tambahkan data detail penerimaan
                 DB::insert(
                     'INSERT INTO detail_penerimaan (jumlah_terima, harga_satuan_terima, sub_total_terima, idpenerimaan, idbarang)
-        VALUES (?, ?, ?, ?, ?)',
+                VALUES (?, ?, ?, ?, ?)',
                     [$jumlah, $hargaSatuan, $subTotal, $idpenerimaan, $idbarang],
                 );
             }
 
             $isAllZero = DB::selectOne('SELECT isAllItemsReceived(?) AS is_all_received', [$idpengadaan])->is_all_received;
-
             if ($isAllZero) {
                 // Update status pengadaan jika semua barang telah diterima
                 DB::update('UPDATE pengadaan SET status = ? WHERE idpengadaan = ?', ['B', $idpengadaan]);
+            }else{
+                DB::update('UPDATE pengadaan SET status = ? WHERE idpengadaan = ?', ['D', $idpengadaan]);
             }
 
             DB::commit();

@@ -56,6 +56,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/pengadaan', [ViewController::class, 'dashboarduser'])->name('pengadaan');
     Route::get('/pengadaan/create', [PengadaanController::class, 'create'])->name('pengadaan.create');
+    Route::post('/pengadaan/delete', [PengadaanController::class, 'delete'])->name('pengadaan.delete');
     Route::get('/pengadaan/caribarang', [PengadaanController::class, 'caribarang'])->name('pengadaan.caribarang');
     Route::post('/pengadaan/store', [PengadaanController::class, 'store'])->name('pengadaan.store');
     Route::post('/caribarang', [PengadaanController::class, 'caribarang'])->name('caribarang');

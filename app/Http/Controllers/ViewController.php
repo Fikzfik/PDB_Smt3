@@ -11,6 +11,7 @@ use App\Models\DetailPengadaan;
 use App\Models\ViewPengadaan;
 use App\Models\ViewPenerimaan;
 use App\Models\ViewPenjualan;
+use App\Models\ViewVendor;
 use App\Models\ViewPengadaanWhereA;
 use App\Models\KartuStockBarang;
 
@@ -22,7 +23,7 @@ class ViewController extends Controller
 
         // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
         $detail = DetailPengadaan::all();
-       $pengadaans = ViewPengadaanWhereA::all();
+        $pengadaans = ViewPengadaanWhereA::all();
         
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
@@ -84,7 +85,7 @@ class ViewController extends Controller
     public function addvendor()
     {
         $validUser = Auth::user();
-        $vendors = DB::select('SELECT * FROM vendor');
+        $vendors = ViewVendor::all();
         return view('vendor.index', compact('validUser', 'vendors'));
     }
     public function addrole()

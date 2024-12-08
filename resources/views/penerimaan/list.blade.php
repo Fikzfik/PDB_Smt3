@@ -189,38 +189,51 @@
 
         $('#confirmReturnBtn').click(function() {
             const itemsData = [];
-            let hasEmptyFields = false;
+            let hasInvalidFields = false;
 
             $('.return-item').each(function() {
                 const idPenerimaan = $(this).data('idpenerimaan');
                 const quantityInput = $(this).find('.return-quantity');
                 const id = quantityInput.data('id');
-                const quantity = quantityInput.val();
+                const maxStock = parseInt(quantityInput.attr('max'), 10);
+                const quantity = parseInt(quantityInput.val(), 10);
                 const reason = $(`#returnReason-${id}`).val();
 
-                // Validasi setiap field apakah terisi atau tidak
-                if (!quantity || !reason) {
-                    hasEmptyFields = true;
-                    return false; // Keluar dari each jika ada field kosong
+                // Validasi jumlah return tidak melebihi stok yang tersedia
+                if (quantity > maxStock) {
+                    hasInvalidFields = true;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Jumlah Tidak Valid',
+                        text: `Jumlah pengembalian untuk barang ID ${id} tidak boleh lebih dari stok tersedia (${maxStock}).`
+                    });
+                    return false; // Hentikan iterasi jika ada jumlah yang tidak valid
                 }
+
+                // Validasi jika field jumlah atau alasan kosong
+                if (!quantity || !reason) {
+                    hasInvalidFields = true;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Data Tidak Lengkap',
+                        text: 'Isi jumlah dan alasan untuk setiap barang yang ingin dikembalikan.'
+                    });
+                    return false; // Hentikan iterasi jika ada field kosong
+                }
+
                 itemsData.push({
                     idPenerimaan: idPenerimaan,
                     idDetailPenerimaan: id,
                     jumlahReturn: quantity,
                     alasan: reason
                 });
-                console.log(itemsData);
             });
 
-            if (hasEmptyFields) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Data Tidak Lengkap',
-                    text: 'Isi jumlah dan alasan untuk setiap barang yang ingin dikembalikan.'
-                });
-                return;
+            if (hasInvalidFields) {
+                return; // Tidak melanjutkan pengiriman jika ada kesalahan
             }
 
+            // Jika validasi lolos, kirim data ke server
             $.ajax({
                 url: '/return-penerimaan',
                 type: 'POST',

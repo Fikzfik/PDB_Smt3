@@ -43,10 +43,10 @@
                                                     <tr>
                                                         <th scope="col">Id Penjualan</th>
                                                         <th scope="col">User</th>
-                                                        <th scope="col">Nama Pembeli</th>
-                                                        <th scope="col">Sub_Total</th>
-                                                        <th scope="col">Total_Nilai</th>
+                                                        <th scope="col">Sub Total</th>
+                                                        <th scope="col">Total Nilai</th>
                                                         <th scope="col">PPN</th>
+                                                        <th scope="col">Margin</th>
                                                         <th scope="col">Action</th>
                                                     </tr>
                                                 </thead>
@@ -129,7 +129,7 @@
                             <td>${item.nama}</td>
                             <td>${item.harga_satuan}</td>
                             <td>${item.jumlah}</td>
-                            <td>${item.sub_total}</td>
+                            <td>${item.subtotal}</td>
                         </tr>`;
                             $('#tableDetail tbody').append(row);
                         });
