@@ -24,7 +24,7 @@ class ViewController extends Controller
         // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
         $detail = DetailPengadaan::all();
         $pengadaans = ViewPengadaanWhereA::all();
-        
+
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
         $jumlahPending = $jumlahPending[0]->total;
@@ -119,5 +119,15 @@ class ViewController extends Controller
         $penjualans = ViewPenjualan::all();
 
         return view('penjualan.index', compact('validUser', 'penjualans'));
+    }
+    public function return()
+    {
+        $validUser = Auth::user();
+        $return = DB::Select('SELECT *
+        FROM returr
+        JOIN users s ON s.iduser = returr.iduser;
+        ');
+
+        return view('return.index', compact('validUser', 'return'));
     }
 }

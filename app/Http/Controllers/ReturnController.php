@@ -72,4 +72,19 @@ class ReturnController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
+    public function detail($id)
+    {
+        $details = DB::select(
+            '
+            SELECT dr.iddetail_retur, dr.idretur, b.nama, dr.jumlah, dr.alasan
+            FROM detail_retur dr
+            JOIN detail_penerimaan dp ON dr.iddetail_penerimaan = dp.iddetail_penerimaan
+            JOIN barang b ON dp.idbarang = b.idbarang
+            WHERE dr.idretur = ?
+        ',
+            [$id],
+        );
+
+        return response()->json($details);
+    }
 }

@@ -222,29 +222,29 @@ class PengadaanController extends Controller
         }
     }
 
-    public function detail($id)
-    {
-        try {
-            // Mengambil detail pengadaan dengan stok yang dibutuhkan
-            $detailPengadaan = DB::select('CALL getDetailPengadaan(?)', [$id]);
+        public function detail($id)
+        {
+            try {
+                // Mengambil detail pengadaan dengan stok yang dibutuhkan
+                $detailPengadaan = DB::select('CALL getDetailPengadaan(?)', [$id]);
 
-            // Memeriksa apakah ada data yang ditemukan
-            if (empty($detailPengadaan)) {
-                return response()->json(['message' => 'Data tidak ditemukan!'], 404);
+                // Memeriksa apakah ada data yang ditemukan
+                if (empty($detailPengadaan)) {
+                    return response()->json(['message' => 'Data tidak ditemukan!'], 404);
+                }
+
+                // Mengembalikan data detail pengadaan sebagai JSON
+                return response()->json($detailPengadaan);
+            } catch (\Exception $e) {
+                return response()->json(
+                    [
+                        'message' => 'Terjadi kesalahan saat mengambil detail pengadaan.',
+                        'error' => $e->getMessage(),
+                    ],
+                    500,
+                );
             }
-
-            // Mengembalikan data detail pengadaan sebagai JSON
-            return response()->json($detailPengadaan);
-        } catch (\Exception $e) {
-            return response()->json(
-                [
-                    'message' => 'Terjadi kesalahan saat mengambil detail pengadaan.',
-                    'error' => $e->getMessage(),
-                ],
-                500,
-            );
         }
-    }
 
     public function detailvalidasi($id)
     {
