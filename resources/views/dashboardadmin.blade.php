@@ -44,6 +44,47 @@
 
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-lg-9 mx-auto py-3">
+                        <div class="row">
+                            <!-- Pengadaan Pending -->
+                            <div class="col-md-4 position-relative">
+                                <div class="p-3 text-center">
+                                    <h1 class="text-gradient text-primary">
+                                        <span id="state4" countTo="{{ $jumlahCancel }}">0</span>+
+                                    </h1>
+                                    <h5 class="mt-3">Jumlah Pengadaan Yang di cancel</h5>
+                                    <p class="text-sm font-weight-normal">Total pengadaan yang berstatus cancel.</p>
+                                </div>
+                                <hr class="vertical dark">
+                            </div>
+
+                            <!-- Pengadaan Selesai -->
+                            <div class="col-md-4 position-relative">
+                                <div class="p-3 text-center">
+                                    <h1 class="text-gradient text-primary">
+                                        <span id="state5" countTo="{{ $jumlahProgres }}">0</span>+
+                                    </h1>
+                                    <h5 class="mt-3">Jumlah Pengadaan Yang masih dalam proses</h5>
+                                    <p class="text-sm font-weight-normal">Total pengadaan yang masih diproses.</p>
+                                </div>
+                            </div>
+
+                            <!-- Pengadaan Return -->
+                            <div class="col-md-4 position-relative">
+                                <div class="p-3 text-center">
+                                    <h1 class="text-gradient text-primary">
+                                        <span id="state6" countTo="{{ $jumlahJual }}">0</span>+
+                                    </h1>
+                                    <h5 class="mt-3">Jumlah penjualan yang sudah terjual</h5>
+                                    <p class="text-sm font-weight-normal">Total Penjualan yang berhasil.</p>
+                                </div>
+                                <hr class="vertical dark">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -66,7 +107,7 @@
                                                             <h3 class="text-white">Status Pengadaan</h3>
                                                             <h3>
                                                                 <span class="text-warning">
-                                                                    {{ $p['status'] == 'A' ? 'Pending' : 'Completed' }}
+                                                                    {{ $p['status'] == 'A' ? 'Pending' : 'In Progress' }}
                                                                 </span>
                                                             </h3>
                                                             <p class="text-white opacity-8">

@@ -11,8 +11,11 @@ use App\Models\DetailPengadaan;
 use App\Models\ViewPengadaan;
 use App\Models\ViewPenerimaan;
 use App\Models\ViewPenjualan;
+use App\Models\ViewVendor;
 use App\Models\ViewPengadaanWhereA;
 use App\Models\KartuStockBarang;
+use App\Models\ViewSatuan;
+use App\Models\ViewBarang;
 
 class ViewController extends Controller
 {
@@ -22,19 +25,28 @@ class ViewController extends Controller
 
         // Join pengadaan, detail_pengadaan, barang, satuan, vendor, and users
         $detail = DetailPengadaan::all();
-       $pengadaans = ViewPengadaanWhereA::all();
-        
+        $pengadaans = ViewPengadaanWhereA::all();
+
         // Count pending procurements
         $jumlahPending = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['A']);
         $jumlahPending = $jumlahPending[0]->total;
 
         $jumlahSucces = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['B']);
         $jumlahSucces = $jumlahSucces[0]->total;
+
+        $jumlahCancel = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['C']);
+        $jumlahCancel = $jumlahCancel[0]->total;
+
+        $jumlahProgres = DB::select('SELECT COUNT(*) as total FROM pengadaan WHERE status = ?', ['D']);
+        $jumlahProgres = $jumlahProgres[0]->total;
         // Count total returns
         $jumlahReturn = DB::select('SELECT COUNT(*) as total FROM returr');
         $jumlahReturn = $jumlahReturn[0]->total;
+        
+        $jumlahJual = DB::select('SELECT COUNT(*) as total FROM penjualan');
+        $jumlahJual = $jumlahJual[0]->total;
 
-        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'jumlahReturn', 'detail', 'jumlahSucces'));
+        return view('dashboardadmin', compact('validUser', 'pengadaans', 'jumlahPending', 'jumlahReturn', 'detail', 'jumlahSucces','jumlahProgres','jumlahCancel','jumlahJual'));
     }
 
     public function dashboarduser()
@@ -57,14 +69,14 @@ class ViewController extends Controller
     public function satuan()
     {
         $validUser = Auth::user();
-        $satuan = DB::select('SELECT * FROM Satuan');
+        $satuan = ViewSatuan::all();
         return view('satuan.index', compact('validUser', 'satuan'));
     }
     public function barang()
     {
         $validUser = Auth::user();
-        $barang = DB::select('SELECT * FROM Barang JOIN Satuan ON Barang.idsatuan = Satuan.idsatuan');
-        $satuan = DB::select('SELECT * FROM Satuan');
+        $barang = ViewBarang::all();
+        $satuan = ViewSatuan::all();
         // @dd($barang);
         return view('barang.index', compact('validUser', 'barang', 'satuan'));
     }
@@ -84,7 +96,7 @@ class ViewController extends Controller
     public function addvendor()
     {
         $validUser = Auth::user();
-        $vendors = DB::select('SELECT * FROM vendor');
+        $vendors = ViewVendor::all();
         return view('vendor.index', compact('validUser', 'vendors'));
     }
     public function addrole()
@@ -118,5 +130,15 @@ class ViewController extends Controller
         $penjualans = ViewPenjualan::all();
 
         return view('penjualan.index', compact('validUser', 'penjualans'));
+    }
+    public function return()
+    {
+        $validUser = Auth::user();
+        $return = DB::Select('SELECT *
+        FROM returr
+        JOIN users s ON s.iduser = returr.iduser;
+        ');
+
+        return view('return.index', compact('validUser', 'return'));
     }
 }

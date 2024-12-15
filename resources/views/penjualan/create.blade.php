@@ -119,7 +119,7 @@
                                 @csrf
                                 <input type="hidden" name="dataPengadaan" id="dataPengadaan" value="">
                                 <button type="button" id="simpan" class="btn btn-primary w-100">Submit
-                                    Pengadaan</button>
+                                    Penjualan</button>
                             </form>
                         </div>
                         <div class="modal fade" id="marginModal" tabindex="-1" aria-labelledby="marginModalLabel"
@@ -167,7 +167,7 @@
                                                     <th>Satuan</th>
                                                     <th>Nama Barang</th>
                                                     <th>Harga</th>
-                                                    <th>Aksi</th>
+                                                    <th>Stock Dimiliki</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -268,19 +268,20 @@
                 },
                 success: function(data) {
                     $('#tableproduk tbody').empty();
-
+                    console.log(data);
                     if (data.length > 0) {
                         for (let i = 0; i < data.length; i++) {
                             let row = `<tr>
-                                <td>${data[i].idbarang}</td>
-                                <td>${data[i].nama_satuan}</td>
-                                <td>${data[i].nama}</td>
-                                <td>${data[i].harga}</td>
-                                <td>
-                                    <button type="button" onclick="pilihBarang(${data[i].idbarang}, '${data[i].nama}', ${data[i].harga}, '${data[i].nama_satuan}')" class="btn btn-success">
-                                        Pilih
-                                    </button>
-                                </td>
+                            <td>${data[i].idbarang}</td>
+                            <td>${data[i].nama_satuan}</td>
+                            <td>${data[i].nama}</td>
+                            <td>${data[i].harga}</td>
+                            <td>${data[i].stock}</td> <!-- Tambahkan kolom stock -->
+                            <td>
+                                <button type="button" onclick="pilihBarang(${data[i].idbarang}, '${data[i].nama}', ${data[i].harga}, '${data[i].nama_satuan}')" class="btn btn-success">
+                                    Pilih
+                                </button>
+                            </td>
                             </tr>`;
                             $('#tableproduk tbody').append(row);
                         }

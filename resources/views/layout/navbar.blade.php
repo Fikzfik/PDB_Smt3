@@ -138,14 +138,14 @@
                                                 </li>
                                                 <li class="nav-item dropdown dropdown-hover dropdown-subitem">
                                                     <a class="dropdown-item py-2 ps-3 border-radius-md"
-                                                        href="/pengadaan">
+                                                        href="/penerimaan">
                                                         <div
                                                             class="w-100 d-flex align-items-center justify-content-between">
                                                             <div>
                                                                 <h6
                                                                     class="dropdown-header text-dark font-weight-bolder d-flex justify-content-cente align-items-center p-0">
                                                                     Penerimaan</h6>
-                                                                <span class="text-sm">Melihat Semua Pengadaan</span>
+                                                                <span class="text-sm">Melihat Semua Penerimaan</span>
                                                             </div>
                                                             <img src="./assets/img/down-arrow.svg" alt="down-arrow"
                                                                 class="arrow">
@@ -165,7 +165,30 @@
                                                 </li>
                                                 <li class="nav-item dropdown dropdown-hover dropdown-subitem">
                                                     <a class="dropdown-item py-2 ps-3 border-radius-md"
-                                                        href="/pengadaan">
+                                                        href="/return">
+                                                        <div
+                                                            class="w-100 d-flex align-items-center justify-content-between">
+                                                            <div>
+                                                                <h6
+                                                                    class="dropdown-header text-dark font-weight-bolder d-flex justify-content-cente align-items-center p-0">
+                                                                    Return</h6>
+                                                                <span class="text-sm">Melihat Semua Return</span>
+                                                            </div>
+                                                            <img src="./assets/img/down-arrow.svg" alt="down-arrow"
+                                                                class="arrow">
+                                                        </div>
+                                                    </a>
+                                                    <div class="dropdown-menu mt-0 py-3 px-2 mt-3">
+                                                        <a class="dropdown-item ps-3 border-radius-md mb-1"
+                                                            href="{{ route('return') }}">
+                                                            Lihat Tabel Return
+                                                        </a>
+                                                    </div>
+
+                                                </li>
+                                                <li class="nav-item dropdown dropdown-hover dropdown-subitem">
+                                                    <a class="dropdown-item py-2 ps-3 border-radius-md"
+                                                        href="/penjualan">
                                                         <div
                                                             class="w-100 d-flex align-items-center justify-content-between">
                                                             <div>

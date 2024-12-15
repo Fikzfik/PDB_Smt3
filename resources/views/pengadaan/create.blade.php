@@ -220,7 +220,7 @@
                 success: function(data) {
                     // Kosongkan tabel produk
                     $('#tableproduk tbody').empty();
-
+                    console.log(data);
                     if (data.length > 0) {
                         for (let i = 0; i < data.length; i++) {
                             let row = `<tr>
@@ -252,6 +252,7 @@
             $('#id_barang').val(idBarang);
             $('#inputbarang').val(namaBarang);
             $('#nama_satuan').val(namaSatuan);
+            
             $('#harga_barang').val(hargaBarang);
             $('#quantity').prop('readonly', false); // Mengaktifkan input quantity
             $('#quantity').val(1); // Set default quantity to 1
@@ -295,7 +296,8 @@
                         nama_barang: namaBarang,
                         harga: hargaBarang,
                         quantity: quantity,
-                        subtotal: hargaBarang * quantity
+                        subtotal: hargaBarang * quantity,
+                        nama_satuan: namaSatuan
                     });
                 }
 
@@ -314,7 +316,7 @@
             <td>${item.nama_satuan}</td> <!-- Tambahkan kolom satuan -->
             <td>${item.nama_barang}</td>
             <td>${item.harga.toLocaleString('id-ID')}</td>
-            <td><input type="number" id="quantity-${item.id_barang}" value="${item.quantity}" onchange="updateSubtotal(${item.id_barang})" style="width: 10%;"></td>
+            <td><input type="number" id="quantity-${item.id_barang}" value="${item.quantity}" onchange="updateSubtotal(${item.id_barang})" style="width: 20%;"></td>
             <td id="subtotal-${item.id_barang}">${item.subtotal.toLocaleString('id-ID')}</td>
             <td><button type="button" onclick="hapusBarang(${item.id_barang})" class="btn btn-danger"><i class="bi bi-trash3-fill"></i>Delete</button></td>
         </tr>`;

@@ -31,7 +31,7 @@
                                 <div class="col-lg-12">
                                     <div class="card">
                                         <div class="card-header">
-                                            <h3 class="card-title">Table Penjualan</h3>
+                                            <h3 class="card-title">Table Return</h3>
                                         </div>
                                         <div class="card-body">
                                             <a href="{{ route('penjualan.create') }}">
@@ -43,26 +43,18 @@
                                                     <tr>
                                                         <th scope="col">Id Penjualan</th>
                                                         <th scope="col">User</th>
-                                                        <th scope="col">Sub Total</th>
-                                                        <th scope="col">Total Nilai</th>
-                                                        <th scope="col">PPN</th>
-                                                        <th scope="col">Margin</th>
                                                         <th scope="col">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach ($penjualans as $penjualan)
-                                                    {{-- @dd($penjualan); --}}
+                                                    @foreach ($return as $retur)
+                                                        {{-- @dd($retur); --}}
                                                         <tr>
-                                                            <td>{{ $penjualan->idpenjualan }}</td>
-                                                            <td>{{ $penjualan->username }}</td>
-                                                            <td>{{ $penjualan->subtotal_nilai }}</td>
-                                                            <td>{{ $penjualan->total_nilai }}</td>
-                                                            <td>{{ $penjualan->ppn }}</td>
-                                                            <td>{{ $penjualan->margin }}</td>
+                                                            <td>{{ $retur->idretur }}</td>
+                                                            <td>{{ $retur->username }}</td>
                                                             <td>
                                                                 <button class="btn btn-primary"
-                                                                    onclick="detail({{ $penjualan->idpenjualan }})">DETAIL</button>
+                                                                    onclick="detail({{ $retur->idretur }})">DETAIL</button>
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -76,8 +68,7 @@
                                         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Detail Penjualan
-                                                    </h1>
+                                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Detail Retur</h1>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                         aria-label="Close"></button>
                                                 </div>
@@ -85,12 +76,11 @@
                                                     <table id="tableDetail" class="table table-bordered table-striped">
                                                         <thead>
                                                             <tr>
-                                                                <th scope="col">Id Detail</th>
-                                                                <th scope="col">Id Penjualan</th>
+                                                                <th scope="col">Id Detail Retur</th>
+                                                                <th scope="col">Id Retur</th>
                                                                 <th scope="col">Barang</th>
-                                                                <th scope="col">Harga Satuan</th>
                                                                 <th scope="col">Jumlah</th>
-                                                                <th scope="col">Sub Total</th>
+                                                                <th scope="col">Alasan</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody></tbody>
@@ -103,6 +93,7 @@
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                         </section>
                     </main>
@@ -116,21 +107,20 @@
         function detail(id) {
             $.ajax({
                 type: "GET",
-                url: `/penjualan/detail/${id}`,
+                url: `/return/detail/${id}`,
                 dataType: "JSON",
                 success: function(data) {
                     $('#tableDetail tbody').empty();
                     if (data.length > 0) {
                         data.forEach(item => {
                             let row = `
-                        <tr>
-                            <td>${item.iddetail_penjualan}</td>
-                            <td>${item.idpenjualan}</td>
-                            <td>${item.nama}</td>
-                            <td>${item.harga_satuan}</td>
-                            <td>${item.jumlah}</td>
-                            <td>${item.subtotal}</td>
-                        </tr>`;
+                <tr>
+                    <td>${item.iddetail_retur}</td>
+                    <td>${item.idretur}</td>
+                    <td>${item.nama}</td>
+                    <td>${item.jumlah}</td>
+                    <td>${item.alasan}</td>
+                </tr>`;
                             $('#tableDetail tbody').append(row);
                         });
                         $('#exampleModal').modal('show');
@@ -138,7 +128,7 @@
                         Swal.fire({
                             icon: 'warning',
                             title: 'Data Tidak Ditemukan!',
-                            text: `Tidak ada detail penjualan yang ditemukan untuk ID penjualan: ${id}.`,
+                            text: `Tidak ada detail retur yang ditemukan untuk ID retur: ${id}.`,
                             confirmButtonText: 'OK'
                         });
                     }

@@ -15,7 +15,7 @@ class PenjualanController extends Controller
     {
         $details = DB::select(
             '
-            SELECT dp.iddetail_penjualan, dp.idpenjualan, b.nama, dp.harga_satuan, dp.jumlah, dp.sub_total
+            SELECT dp.iddetail_penjualan, dp.idpenjualan, b.nama, dp.harga_satuan, dp.jumlah, dp.subtotal
             FROM detail_penjualan dp
             JOIN barang b ON dp.idbarang = b.idbarang
             WHERE dp.idpenjualan = ?
@@ -37,12 +37,19 @@ class PenjualanController extends Controller
         try {
             // Raw SQL untuk pencarian barang yang memiliki stok, dengan GROUP BY
             $barang = DB::select(
-                "SELECT b.idbarang, b.nama, b.harga, s.nama_satuan, SUM(k.stock) AS stock
-            FROM barang b
-            JOIN satuan s ON b.idsatuan = s.idsatuan
-            JOIN kartu_stok k ON b.idbarang = k.idbarang
-            WHERE b.nama LIKE ? AND k.stock > 0
-            GROUP BY b.idbarang, b.nama, b.harga, s.nama_satuan", // Group by untuk memastikan satu entri per barang
+                "SELECT b.idbarang, b.nama, b.harga, s.nama_satuan, ks.stok_terakhir AS stock
+                FROM barang b
+                JOIN satuan s ON b.idsatuan = s.idsatuan
+                LEFT JOIN (
+                    SELECT ks.idbarang, ks.stock AS stok_terakhir
+                    FROM kartu_stok ks
+                    WHERE (ks.idbarang, ks.create_at) IN (
+                        SELECT k.idbarang, MAX(k.create_at)
+                        FROM kartu_stok k
+                        GROUP BY k.idbarang
+                    )
+                ) ks ON b.idbarang = ks.idbarang
+                WHERE b.nama LIKE ? AND ks.stok_terakhir > 0",
                 ['%' . $request->barang . '%'],
             );
 
@@ -139,5 +146,8 @@ class PenjualanController extends Controller
                 500,
             );
         }
+    }
+    public function delete(Request $request){
+        
     }
 }

@@ -56,6 +56,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/pengadaan', [ViewController::class, 'dashboarduser'])->name('pengadaan');
     Route::get('/pengadaan/create', [PengadaanController::class, 'create'])->name('pengadaan.create');
+    Route::post('/pengadaan/delete', [PengadaanController::class, 'delete'])->name('pengadaan.delete');
     Route::get('/pengadaan/caribarang', [PengadaanController::class, 'caribarang'])->name('pengadaan.caribarang');
     Route::post('/pengadaan/store', [PengadaanController::class, 'store'])->name('pengadaan.store');
     Route::post('/caribarang', [PengadaanController::class, 'caribarang'])->name('caribarang');
@@ -77,14 +78,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/penjualan/barang', [PenjualanController::class, 'getBarang'])->name('penjualan.getBarang');
     Route::post('/caribarang2', [PenjualanController::class, 'caribarang2'])->name('caribarang2');
     Route::post('/penjualan/store', [PenjualanController::class, 'store'])->name('penjualan.store');
-
+    
     Route::get('/margin', [ViewController::class, 'margin'])->name('margin');
     Route::post('/margin-penjualan/store', [MarginController::class, 'store'])->name('margin.store');
     Route::post('/margin-penjualan/update/{id}', [MarginController::class, 'update'])->name('margin.update');
     Route::delete('/margin-penjualan/delete/{id}', [MarginController::class, 'delete'])->name('margin.delete');
     Route::get('/margins', [MarginController::class, 'getMargins'])->name('getMargins');
-
+    
     Route::post('/logout', [AuthController::class, 'logoutakun'])->name('logout');
+    
+    Route::get('/return', [ViewController::class, 'return'])->name('return');
+    Route::get('/return/detail/{id}', [ReturnController::class, 'detail'])->name('return.detail');
 });
 
 Route::group(['middleware' => 'guest'], function () {
