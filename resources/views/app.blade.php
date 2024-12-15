@@ -63,6 +63,30 @@
                 console.error(countUp2.error);
             }
         }
+        if (document.getElementById('state4')) {
+            const countUp3 = new CountUp('state4', document.getElementById("state4").getAttribute("countTo"));
+            if (!countUp3.error) {
+                countUp3.start();
+            } else {
+                console.error(countUp3.error);
+            }
+        }
+        if (document.getElementById('state5')) {
+            const countUp4 = new CountUp('state5', document.getElementById("state5").getAttribute("countTo"));
+            if (!countUp4.error) {
+                countUp4.start();
+            } else {
+                console.error(countUp4.error);
+            }
+        }
+        if (document.getElementById('state6')) {
+            const countUp5 = new CountUp('state6', document.getElementById("state6").getAttribute("countTo"));
+            if (!countUp5.error) {
+                countUp5.start();
+            } else {
+                console.error(countUp5.error);
+            }
+        }
     </script>
 </body>
 

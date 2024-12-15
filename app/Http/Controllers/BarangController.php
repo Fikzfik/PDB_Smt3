@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; // Menggunakan DB facade
+use Illuminate\Support\Facades\Log; // Menggunakan DB facade
 
 class BarangController extends Controller
 {
@@ -29,12 +30,7 @@ class BarangController extends Controller
     public function update(Request $request, $id)
     {
         // Validasi input
-        $request->validate([
-            'jenis' => 'required|string|max:255',
-            'nama' => 'required|string|max:255',
-            'idsatuan' => 'required|integer',
-            'harga' => 'required|numeric',
-        ]);
+        \Log::info($request->all());
 
         // Panggil stored procedure untuk update
         $updated = DB::statement('CALL UpdateBarang(?, ?, ?, ?, ?)', [$id, $request->input('jenis'), $request->input('nama'), $request->input('idsatuan'), $request->input('harga')]);
